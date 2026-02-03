@@ -9,7 +9,7 @@
     *   Documentations officielles (FastAPI, SQLAlchemy, Pydantic, PostgreSQL, Docker).
 
 ## Méthodologie de projet
-Le projet suit une méthodologie **Agile** de type **Kanban**, adaptée à un développement continu et fluide. Cette approche permet un **suivi du travail** en temps réel et facilite l'**organisation personnelle** sur les 5 semaines du projet.
+Le projet suit une méthodologie **Agile** de type **Kanban**, adaptée à un développement continu et fluide. Cette approche permet un **suivi du travail** en temps réel et facilite l'**organisation personnelle** sur les 4 semaines du projet.
 
 ### Organisation Jira
 Le board Jira est le point central du pilotage :
@@ -20,7 +20,7 @@ Le board Jira est le point central du pilotage :
     *   `Review` : Pull Request ouverte, en attente de validation/test.
     *   `Done` : Tâche terminée, testée et mergée.
 *   **Suivi du travail :** Utilisation des étiquettes (labels) pour distinguer le Frontend, Backend, et DevOps, permettant de mesurer l'avancement par domaine.
-*   **Organisation personnelle :** Chaque tâche est estimée et assignée, permettant de garantir le respect du planning de 5 semaines.
+*   **Organisation personnelle :** Chaque tâche est estimée et assignée, permettant de garantir le respect du planning de 4 semaines.
 
 ## Qualité et Suivi
 *   Réunions de synchronisation régulières (auto-bilan quotidien).

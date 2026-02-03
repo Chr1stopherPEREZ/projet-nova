@@ -11,7 +11,7 @@ Le cœur de Nova est le contrôle périodique des suivis.
 - **Hypothèse Single Worker** : Pour la V1, un seul processus worker est exécuté. Il n'y a pas de concurrence multi-instances sur la sélection des tâches.
 
 ## Justification
-- Plus simple qu’une queue complète en 5 semaines.
+- Plus simple qu'une queue complète en 4 semaines.
 - Suffisant pour un MVP défendable.
 - Évite la gestion complexe des locks distribués.
 

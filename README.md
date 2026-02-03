@@ -1,6 +1,6 @@
 # Nova — Plateforme de suivi de retour en stock
 
-Nova est une application web conçue pour surveiller la disponibilité de produits sur des sites marchands et notifier les utilisateurs dès qu'un retour en stock est détecté. Ce projet est réalisé sur un cycle court de **5 semaines**, avec un suivi de projet rigoureux assuré via **Jira (Kanban)**.
+Nova est une application web conçue pour surveiller la disponibilité de produits sur des sites marchands et notifier les utilisateurs dès qu'un retour en stock est détecté. Ce projet est réalisé sur un cycle court de **4 semaines**, avec un suivi de projet rigoureux assuré via **Jira (Kanban)**.
 
 ## Objectifs du projet
 L'application permet d'automatiser une veille qui est aujourd'hui manuelle et fastidieuse. Elle repose sur un moteur de scraping intelligent capable de s'adapter aux changements de structure des sites cibles grâce à un système de profils dynamiques.
@@ -34,6 +34,11 @@ Le projet est entièrement documenté pour garantir une implémentation fluide e
     - [`22-compliance.md`](./docs/22-compliance.md) : Conformité et RGPD.
     - [`23-deployment.md`](./docs/23-deployment.md) : Déploiement et DevOps.
     - [`24-glossary.md`](./docs/24-glossary.md) : Glossaire technique.
+    - [`25-traceability-matrix.md`](./docs/25-traceability-matrix.md) : Matrice de traçabilité complète.
+    - [`26-demo-plan.md`](./docs/26-demo-plan.md) : Plan de démonstration.
+    - [`27-definition-of-done.md`](./docs/27-definition-of-done.md) : Definition of Done.
+    - [`28-ops-observability.md`](./docs/28-ops-observability.md) : Observabilité et exploitation.
+    - [`29-rgpd.md`](./docs/29-rgpd.md) : RGPD et gestion des données.
 - **[`docs/adr/`](./docs/adr/)** : Architecture Decision Records traçant les choix techniques structurants (Auth, Scheduling, Scraping).
 
 ## Stack Technique (Prévisionnelle)
@@ -43,9 +48,48 @@ Le projet est entièrement documenté pour garantir une implémentation fluide e
 - **Frontend** : Dashboard minimaliste (3-4 écrans clés). La stack technique est flexible (React/Tailwind ou HTML/CSS/JS natif) et sera validée à l'issue de la phase de prototypage Figma.
 - **Déploiement** : Docker & Docker Compose
 
-## 📖 Guide de démarrage (Plan 5 semaines)
-1. **Semaine 1 : Analyse & Design (Phase 1)** - Lire `docs/11-mvp.md`, valider le backlog (`13-user-stories.md`) et initialiser l'environnement Docker. Travail sur **Figma** : Création de la **charte graphique** et des **wireframes**.
-2. **Semaine 2 : Données & Design (Phase 2)** - Implémenter le modèle (`18-mpd.md`) et les endpoints de base (`07-api-spec.md`). Suite sur **Figma** : Réalisation des **maquettes haute-fidélité** et du **prototype interactif**.
-3. **Semaine 3 : Worker & Scraping** - Développer le cœur du système à partir de `docs/08-site-profiles-spec.md` et de l'ADR 003.
-4. **Semaine 4 : Développement Frontend & Notifications** - Intégration de l'interface utilisateur basée sur les maquettes Figma et mise en place des alertes e-mail.
-5. **Semaine 5 : QA & Déploiement** - Exécuter la stratégie de tests (`06-test-strategy.md`) et finaliser le déploiement.
+## 🎬 Démonstration
+
+### Démo complète (FRONT + BACK)
+Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md).
+
+**Parcours principal :**
+1. Login via le Frontend
+2. Créer une watch (URL produit)
+3. Lister / consulter les suivis
+4. Déclencher un check (ou attendre le cycle)
+5. Vérifier la notification dans Mailhog
+
+### Fallback : BACK uniquement
+En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
+Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
+
+### Démarrage local
+> *Les commandes exactes sont à confirmer lors de l'implémentation.*
+
+```bash
+# Lancer tous les services
+docker compose up -d
+
+# Appliquer les migrations
+docker compose exec api alembic upgrade head
+
+# Vérifier l'API (OpenAPI)
+open http://localhost:8000/docs
+
+# Vérifier les emails (Mailhog)
+open http://localhost:8025
+
+# Accéder au Frontend
+open http://localhost:3000
+```
+
+Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
+
+---
+
+## 📖 Guide de démarrage (Plan 4 semaines)
+1. **Semaine 1 : Setup & Fondations** - Initialiser l'environnement Docker, implémenter le modèle de données (`18-mpd.md`), développer l'authentification (register/login/JWT) et les endpoints de base (`07-api-spec.md`). En parallèle : finalisation de la **charte graphique** et des **wireframes** (Figma).
+2. **Semaine 2 : API Core & Worker** - Implémenter le CRUD Suivis et Profils de sites. Développer le cœur du worker (scheduler, scraping HTTPX/Playwright, détection stock) à partir de `docs/08-site-profiles-spec.md` et de l'ADR 003.
+3. **Semaine 3 : Frontend & Notifications** - Intégration de l'interface utilisateur (dashboard, admin) basée sur les maquettes Figma. Mise en place des alertes e-mail et tests d'intégration.
+4. **Semaine 4 : QA & Déploiement** - Exécuter la stratégie de tests (`06-test-strategy.md`), finaliser le déploiement Docker/CI et préparer la démo (`26-demo-plan.md`).
