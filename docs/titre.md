@@ -28,6 +28,7 @@ Ce document récapitule les compétences et livrables requis pour le passage du 
 *   **Contenu :** Choix de la méthodologie (Agile/Kanban), suivi du travail, qualité de la gestion de projet et organisation personnelle.
 *   **Documentation de référence :**
     *   [`01-methodology-tools.md`](./01-methodology-tools.md) : Méthodologie Agile et organisation Jira.
+    *   [`27-definition-of-done.md`](./27-definition-of-done.md) : Definition of Done (US, PR, Release).
 
 ### 5. Analyser les besoins et maquetter une application
 *   **Contenu :** Conception et analyse, démarche structurée, public cible, charte graphique, cahier des charges, maquettes, prototype, User Flow, UML (Use Cases, Séquences, Classes, Activités) et Merise (MCD, MLD, MPD).
@@ -53,6 +54,7 @@ Ce document récapitule les compétences et livrables requis pour le passage du 
 *   **Documentation de référence :**
     *   [`21-database-ops.md`](./21-database-ops.md) : Sauvegardes, sécurité des droits et scripts de Seed.
     *   [`22-compliance.md`](./22-compliance.md) : Conformité et RGPD.
+    *   [`29-rgpd.md`](./29-rgpd.md) : RGPD et gestion des données personnelles.
     *   [`18-mpd.md`](./18-mpd.md) : DDL PostgreSQL de référence.
 
 ### 8. Développer des composants d'accès aux données SQL et NoSQL
@@ -65,16 +67,19 @@ Ce document récapitule les compétences et livrables requis pour le passage du 
 *   **Contenu :** Tests unitaires, d'intégration, de non-régression et de sécurité.
 *   **Documentation de référence :**
     *   [`06-test-strategy.md`](./06-test-strategy.md) : Stratégie complète et matrice Exigences → Tests.
+    *   [`25-traceability-matrix.md`](./25-traceability-matrix.md) : Matrice de traçabilité US → Endpoints → Tables → Tests.
 
 ### 10. Préparer et documenter le déploiement d'une application
 *   **Contenu :** CI/CD, scripts de déploiement, Docker, GitHub Actions, automatisation DevOps.
 *   **Documentation de référence :**
     *   [`23-deployment.md`](./23-deployment.md) : Conteneurisation, Pipelines CI/CD et exploitation.
+    *   [`28-ops-observability.md`](./28-ops-observability.md) : Observabilité, logs et runbook d'exploitation.
 
 ### 11. Contribuer à la mise en production dans une démarche DevOps
 *   **Contenu :** Livraison régulière, environnements chaînés (test/prod), virtualisation.
 *   **Documentation de référence :**
     *   [`23-deployment.md`](./23-deployment.md) : Stratégie de mise en production et virtualisation Docker.
+    *   [`28-ops-observability.md`](./28-ops-observability.md) : Variables d'environnement, logs structurés et procédures.
 
 ---
 
