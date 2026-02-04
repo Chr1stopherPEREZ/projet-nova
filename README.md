@@ -64,23 +64,32 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local
-> *Les commandes exactes sont à confirmer lors de l'implémentation.*
+### Démarrage local — Lot 1 (actuel)
 
 ```bash
 # Lancer tous les services
 docker compose up -d
 
-# Appliquer les migrations
-docker compose exec api alembic upgrade head
+# Vérifier l'API (health check)
+curl http://localhost:8000/health
+# → {"status":"ok","environment":"development"}
 
-# Vérifier l'API (OpenAPI)
+# Ouvrir Swagger (OpenAPI)
 open http://localhost:8000/docs
 
-# Vérifier les emails (Mailhog)
+# Ouvrir Mailhog (emails)
 open http://localhost:8025
+```
 
-# Accéder au Frontend
+### Lot 2+ (à venir)
+
+> *Les commandes ci-dessous seront disponibles après implémentation des lots suivants.*
+
+```bash
+# Appliquer les migrations (Lot 2)
+docker compose exec api alembic upgrade head
+
+# Accéder au Frontend (Lot 3)
 open http://localhost:3000
 ```
 
