@@ -1,1 +1,36 @@
+# IDE
 .idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.env
+*.egg-info/
+dist/
+build/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Evidence (généré localement, sauf lot1 versionné)
+evidence/*
+!evidence/lot1/
+!evidence/lot1/*
