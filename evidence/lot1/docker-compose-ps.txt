@@ -1,0 +1,4 @@
+NAME                    IMAGE                    COMMAND                  SERVICE   CREATED          STATUS          PORTS
+projet-nova-api-1       projet-nova-api          "uvicorn app.main:ap…"   api       26 seconds ago   Up 25 seconds   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+projet-nova-db-1        postgres:16-alpine       "docker-entrypoint.s…"   db        26 seconds ago   Up 25 seconds   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp
+projet-nova-mailhog-1   mailhog/mailhog:latest   "MailHog"                mailhog   27 seconds ago   Up 25 seconds   0.0.0.0:1025->1025/tcp, [::]:1025->1025/tcp, 0.0.0.0:8025->8025/tcp, [::]:8025->8025/tcp
