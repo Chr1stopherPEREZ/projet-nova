@@ -64,33 +64,55 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local — Lot 1 (actuel)
+### Démarrage local — Lot 2 (actuel)
 
 ```bash
 # Lancer tous les services
-docker compose up -d
+docker compose up -d --build
+
+# Appliquer les migrations
+docker compose exec api alembic upgrade head
 
 # Vérifier l'API (health check)
 curl http://localhost:8000/health
 # → {"status":"ok","environment":"development"}
 
-# Ouvrir Swagger (OpenAPI)
-open http://localhost:8000/docs
+# Swagger (OpenAPI)
+# http://localhost:8000/docs
 
-# Ouvrir Mailhog (emails)
-open http://localhost:8025
+# Mailhog (emails)
+# http://localhost:8025
 ```
 
-### Lot 2+ (à venir)
+### Authentification (Lot 2)
+
+```bash
+# Inscription
+curl -X POST http://localhost:8000/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"123456789"}'
+
+# Connexion (retourne cookies access_token + csrf_token)
+curl -X POST http://localhost:8000/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"123456789"}' \
+  -c cookies.txt
+```
+
+### Tests
+
+```bash
+# Exécuter les tests
+docker compose exec api pytest tests/ -v
+```
+
+### Lot 3+ (à venir)
 
 > *Les commandes ci-dessous seront disponibles après implémentation des lots suivants.*
 
 ```bash
-# Appliquer les migrations (Lot 2)
-docker compose exec api alembic upgrade head
-
-# Accéder au Frontend (Lot 3)
-open http://localhost:3000
+# Frontend (Lot 3)
+# http://localhost:3000
 ```
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
