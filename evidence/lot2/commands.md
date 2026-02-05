@@ -45,7 +45,7 @@ curl -X POST http://localhost:8000/auth/_csrf-check \
   -b cookies.txt
 
 # CSRF check (avec header = 204)
-CSRF=$(grep csrf_token cookies.txt | awk '{print $7}')
+CSRF=$(awk '$6=="csrf_token"{print $7}' cookies.txt)
 curl -X POST http://localhost:8000/auth/_csrf-check \
   -b cookies.txt \
   -H "X-CSRF-Token: $CSRF"
