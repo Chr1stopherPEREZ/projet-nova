@@ -6,11 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.routes.auth import router as auth_router
+from app.api.routes.watches import router as watches_router
 
 app = FastAPI(
     title="Nova API",
     description="API de suivi de retour en stock",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 # Configuration CORS (externalisé via CORS_ORIGINS)
@@ -24,6 +25,7 @@ app.add_middleware(
 
 # Routes
 app.include_router(auth_router)
+app.include_router(watches_router)
 
 
 @app.get("/health")

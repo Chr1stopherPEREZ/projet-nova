@@ -2,8 +2,28 @@
 
 Nova est une application web conçue pour surveiller la disponibilité de produits sur des sites marchands et notifier les utilisateurs dès qu'un retour en stock est détecté. Ce projet est réalisé sur un cycle court de **4 semaines**, avec un suivi de projet rigoureux assuré via **Jira (Kanban)**.
 
+## 🚀 Quickstart
+
+```bash
+# 1. Lancer les services
+docker compose up -d --build
+
+# 2. Appliquer les migrations
+docker compose exec api alembic upgrade head
+
+# 3. Vérifier que tout fonctionne
+curl http://localhost:8000/health
+# → {"status":"ok","environment":"development"}
+
+# 4. Accéder aux interfaces
+# Swagger API : http://localhost:8000/docs
+# Mailhog     : http://localhost:8025
+```
+
+> **Note** : Les tests s'exécutent via `docker compose exec api pytest tests/ -v`
+
 ## Objectifs du projet
-L'application permet d'automatiser une veille qui est aujourd'hui manuelle et fastidieuse. Elle repose sur un moteur de scraping intelligent capable de s'adapter aux changements de structure des sites cibles grâce à un système de profils dynamiques.
+Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité. Le **MVP actuel** (Lot 3) couvre l'authentification et la gestion des watches (suivis). Le moteur de checks automatiques et les notifications arrivent au lot suivant.
 
 ## Structure de la documentation
 Le projet est entièrement documenté pour garantir une implémentation fluide et cohérente :
@@ -64,7 +84,7 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local — Lot 2 (actuel)
+### Démarrage local — Lot 3 (actuel)
 
 ```bash
 # Lancer tous les services
@@ -84,13 +104,14 @@ curl http://localhost:8000/health
 # http://localhost:8025
 ```
 
-### Authentification (Lot 2)
+### Authentification
 
 ```bash
 # Inscription
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"123456789"}'
+  -d '{"email":"test@example.com","password":"123456789"}' \
+  -c cookies.txt
 
 # Connexion (retourne cookies access_token + csrf_token)
 curl -X POST http://localhost:8000/auth/login \
@@ -99,21 +120,70 @@ curl -X POST http://localhost:8000/auth/login \
   -c cookies.txt
 ```
 
+### Watches (Suivis) — Lot 3
+
+Les routes `/watches` permettent de créer et gérer des suivis de produits. Toutes les routes mutables (POST/PATCH/DELETE) requièrent l'authentification **et** le header CSRF.
+
+```bash
+# Récupérer le token CSRF depuis le cookie (format Netscape cookie jar)
+CSRF=$(awk '$6=="csrf_token"{print $7}' cookies.txt)
+
+# Créer une watch
+curl -X POST http://localhost:8000/watches \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: $CSRF" \
+  -b cookies.txt \
+  -d '{"url":"https://www.ldlc.com/fiche/PB00589057.html","label":"RTX 4090"}'
+# → {"id":"uuid","url":"...","label":"RTX 4090","status":"ACTIVE","stock_state":"UNKNOWN","last_checked_at":null}
+
+# Lister mes watches
+curl http://localhost:8000/watches -b cookies.txt
+
+# Détail d'une watch
+curl http://localhost:8000/watches/{watch_id} -b cookies.txt
+
+# Mettre en pause
+curl -X PATCH http://localhost:8000/watches/{watch_id} \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: $CSRF" \
+  -b cookies.txt \
+  -d '{"status":"PAUSED"}'
+
+# Supprimer
+curl -X DELETE http://localhost:8000/watches/{watch_id} \
+  -H "X-CSRF-Token: $CSRF" \
+  -b cookies.txt
+```
+
+**Routes implémentées (Lot 3) :**
+
+| Route | Méthode | Auth | CSRF | Description |
+|-------|---------|------|------|-------------|
+| `/watches` | POST | ✓ | ✓ | Créer une watch |
+| `/watches` | GET | ✓ | - | Lister mes watches |
+| `/watches/{id}` | GET | ✓ | - | Détail d'une watch |
+| `/watches/{id}` | PATCH | ✓ | ✓ | Modifier (pause/active) |
+| `/watches/{id}` | DELETE | ✓ | ✓ | Supprimer |
+
+**Notes :**
+- L'isolation des données est garantie : un utilisateur ne voit que ses propres watches (404 sinon).
+- L'URL est normalisée (suppression des query params) pour éviter les doublons.
+- Les routes `/watches/{id}/checks` et `/watches/{id}/notifications` sont prévues pour le Lot 4 (worker).
+
 ### Tests
 
 ```bash
-# Exécuter les tests
+# Exécuter tous les tests (21 tests : 11 auth + 10 watches)
 docker compose exec api pytest tests/ -v
 ```
 
-### Lot 3+ (à venir)
+### Lot 4+ (à venir)
 
-> *Les commandes ci-dessous seront disponibles après implémentation des lots suivants.*
+> *Les fonctionnalités ci-dessous seront disponibles après implémentation des lots suivants.*
 
-```bash
-# Frontend (Lot 3)
-# http://localhost:3000
-```
+- **Worker / Checks** : Vérification automatique des stocks (APScheduler)
+- **Notifications** : Alertes email via Mailhog/SMTP
+- **Frontend** : Dashboard utilisateur (http://localhost:3000)
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
 
