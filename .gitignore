@@ -30,7 +30,9 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# Evidence (généré localement, sauf lot1 versionné)
+# Evidence (généré localement, sauf lot1 et lot2 versionnés)
 evidence/*
 !evidence/lot1/
 !evidence/lot1/*
+!evidence/lot2/
+!evidence/lot2/*
