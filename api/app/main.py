@@ -1,22 +1,34 @@
 """
-Point d'entrée de l'API Nova (Fast API).
+Point d'entrée de l'API Nova (FastAPI).
 """
-import os
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-APP_ENV = os.getenv("APP_ENV", "development")
+from app.core.config import settings
+from app.api.routes.auth import router as auth_router
 
 app = FastAPI(
     title="Nova API",
     description="API de suivi de retour en stock",
-    version="0.1.0",
+    version="0.2.0",
 )
+
+# Configuration CORS (externalisé via CORS_ORIGINS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins_list,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Routes
+app.include_router(auth_router)
 
 
 @app.get("/health")
 async def health_check() -> dict:
     """Endpoint de vérification de santé."""
-    return {"status": "ok", "environment": APP_ENV}
+    return {"status": "ok", "environment": settings.app_env}
 
 # Main.py
