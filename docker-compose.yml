@@ -31,5 +31,17 @@ services:
       - "8025:8025"
     restart: unless-stopped
 
+  worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "echo '[worker] Service idle (S1)' && sleep infinity"]
+    environment:
+      - APP_ENV=development
+      - DATABASE_URL=postgresql://nova:nova@db:5432/nova
+    depends_on:
+      - db
+    restart: unless-stopped
+
 volumes:
   postgres_data:
