@@ -2,23 +2,28 @@
 
 Nova est une application web conçue pour surveiller la disponibilité de produits sur des sites marchands et notifier les utilisateurs dès qu'un retour en stock est détecté. Ce projet est réalisé sur un cycle court de **4 semaines**, avec un suivi de projet rigoureux assuré via **Jira (Kanban)**.
 
-## 🚀 Quickstart
+## 🚀 Quickstart (1 commande)
 
 ```bash
-# 1. Lancer les services
-docker compose up -d --build
-
-# 2. Appliquer les migrations
-docker compose exec api alembic upgrade head
-
-# 3. Vérifier que tout fonctionne
-curl http://localhost:8000/health
-# → {"status":"ok","environment":"development"}
-
-# 4. Accéder aux interfaces
-# Swagger API : http://localhost:8000/docs
-# Mailhog     : http://localhost:8025
+docker compose up --build
 ```
+
+C'est tout ! Les migrations et le seed user sont appliqués automatiquement au démarrage.
+
+### Accès
+
+| Service | URL |
+|---------|-----|
+| **Swagger API** | http://localhost:8000/docs |
+| **Health check** | http://localhost:8000/health |
+| **Mailhog** | http://localhost:8025 |
+
+### Utilisateur de démonstration
+
+| Champ | Valeur |
+|-------|--------|
+| Email | `demo@nova.dev` |
+| Mot de passe | `Demo12345!` |
 
 > **Note** : Les tests s'exécutent via `docker compose exec api pytest tests/ -v`
 

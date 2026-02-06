@@ -10,12 +10,14 @@ docker compose up -d --build
 docker compose exec api alembic upgrade head
 ```
 
-## Créer un utilisateur de test
+## Utilisateur de démonstration
 ```bash
-docker compose exec api python -m app.scripts.seed_user
-# Avec options:
-docker compose exec api python -m app.scripts.seed_user --email user@test.com --password secret123
-docker compose exec api python -m app.scripts.seed_user --admin
+# L'utilisateur demo est créé automatiquement au démarrage (via start.sh)
+# Email: demo@nova.dev
+# Password: Demo12345!
+
+# Pour désactiver le seed automatique :
+# SEED_DEMO_USER=0 dans les variables d'environnement
 ```
 
 ## Lancer les tests
