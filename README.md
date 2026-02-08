@@ -4,6 +4,8 @@ Nova est une application web conçue pour surveiller la disponibilité de produi
 
 ## 🚀 Quickstart (1 commande)
 
+**Prérequis** : Docker Desktop (ou Docker Engine + Docker Compose v2 avec plugin buildx)
+
 ```bash
 docker compose up --build
 ```
@@ -28,7 +30,12 @@ C'est tout ! Les migrations et le seed user sont appliqués automatiquement au d
 > **Note** : Les tests s'exécutent via `docker compose exec api pytest tests/ -v`
 
 ## Objectifs du projet
-Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité. Le **MVP actuel** (Lot 3) couvre l'authentification et la gestion des watches (suivis). Le moteur de checks automatiques et les notifications arrivent au lot suivant.
+Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité.
+
+**État actuel (Lot 4) :**
+- ✅ **Lot 1-3** : Authentification + gestion des watches (suivis)
+- ✅ **Lot 4** : Worker de check déterministe (fixtures) — vérification de stock via fichiers HTML locaux, persistance en DB
+- 🔜 **Lot 5** : Orchestration + notifications email (Mailhog)
 
 ## Structure de la documentation
 Le projet est entièrement documenté pour garantir une implémentation fluide et cohérente :
@@ -66,6 +73,11 @@ Le projet est entièrement documenté pour garantir une implémentation fluide e
     - [`29-rgpd.md`](./docs/29-rgpd.md) : RGPD et gestion des données.
 - **[`docs/adr/`](./docs/adr/)** : Architecture Decision Records traçant les choix techniques structurants (Auth, Scheduling, Scraping).
 
+## Structure du projet
+
+> **Note** : Les dossiers `web/` et `worker/` à la racine sont des **placeholders** pour les futurs composants.  
+> Le worker actuel (LOT 4) est implémenté dans `api/app/worker.py` et s'exécute via Docker Compose.
+
 ## Stack Technique (Prévisionnelle)
 - **Backend** : Python 3.12+, FastAPI
 - **Base de données** : PostgreSQL
@@ -89,14 +101,11 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local — Lot 3 (actuel)
+### Démarrage local — Lot 4 (actuel)
 
 ```bash
-# Lancer tous les services
+# Lancer tous les services (migrations appliquées automatiquement via start.sh)
 docker compose up -d --build
-
-# Appliquer les migrations
-docker compose exec api alembic upgrade head
 
 # Vérifier l'API (health check)
 curl http://localhost:8000/health
@@ -109,19 +118,21 @@ curl http://localhost:8000/health
 # http://localhost:8025
 ```
 
+> **Debug migrations** : Si besoin de réappliquer manuellement les migrations, voir [`docs/21-database-ops.md`](./docs/21-database-ops.md).
+
 ### Authentification
 
 ```bash
 # Inscription
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"123456789"}' \
+  -d '{"email":"test@example.com","password":"Test12345!"}' \
   -c cookies.txt
 
 # Connexion (retourne cookies access_token + csrf_token)
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"123456789"}' \
+  -d '{"email":"test@example.com","password":"Test12345!"}' \
   -c cookies.txt
 ```
 
@@ -173,21 +184,42 @@ curl -X DELETE http://localhost:8000/watches/{watch_id} \
 **Notes :**
 - L'isolation des données est garantie : un utilisateur ne voit que ses propres watches (404 sinon).
 - L'URL est normalisée (suppression des query params) pour éviter les doublons.
-- Les routes `/watches/{id}/checks` et `/watches/{id}/notifications` sont prévues pour le Lot 4 (worker).
+- La table `watch_checks` stocke l'historique des vérifications (Lot 4).
 
 ### Tests
 
 ```bash
-# Exécuter tous les tests (21 tests : 11 auth + 10 watches)
+# Exécuter tous les tests (30 tests : 11 auth + 10 watches + 9 worker)
 docker compose exec api pytest tests/ -v
 ```
 
-### Lot 4+ (à venir)
+### Worker (Lot 4)
 
-> *Les fonctionnalités ci-dessous seront disponibles après implémentation des lots suivants.*
+Le worker exécute des checks de stock en mode déterministe (fixtures HTML).
 
-- **Worker / Checks** : Vérification automatique des stocks (APScheduler)
-- **Notifications** : Alertes email via Mailhog/SMTP
+> **Note** : Le dossier `worker/` à la racine est un placeholder. L'implémentation actuelle est dans `api/app/worker.py`. La documentation du worker est dans [`worker/README.md`](./worker/README.md).
+
+```bash
+# Exécuter le worker (mode fixture par défaut)
+docker compose run --rm worker
+
+# Avec une autre fixture
+docker compose run --rm -e FIXTURE_NAME=out_of_stock.html worker
+
+# Vérifier les résultats en DB
+docker compose exec db psql -U nova -d nova -c "SELECT stock_state, http_status, fetch_mode FROM watch_checks ORDER BY checked_at DESC LIMIT 5;"
+```
+
+**Variables d'environnement :**
+| Variable | Valeur par défaut | Description |
+|----------|------------------|-------------|
+| `CHECK_MODE` | `fixture` | Mode de check (seul `fixture` supporté pour Lot 4) |
+| `FIXTURE_NAME` | `in_stock.html` | Fichier fixture à utiliser |
+
+### Lot 5+ (à venir)
+
+- **Orchestration** : Endpoint `POST /jobs/run` pour déclencher des checks
+- **Notifications** : Alertes email via Mailhog/SMTP si changement de stock
 - **Frontend** : Dashboard utilisateur (http://localhost:3000)
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
