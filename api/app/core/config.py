@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: str = "http://localhost:3000"
 
+    # Worker
+    check_mode: str = "fixture"  # "fixture" = mode déterministe, autre = not implemented
+    fixture_name: str = "in_stock.html"  # nom du fichier fixture à utiliser
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS en liste (séparé par virgules)."""
