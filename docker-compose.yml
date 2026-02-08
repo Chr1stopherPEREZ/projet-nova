@@ -34,13 +34,16 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    command: ["sh", "-c", "echo '[worker] Service idle (S1)' && sleep infinity"]
+    command: ["python", "-m", "app.worker"]
     environment:
       - APP_ENV=development
       - DATABASE_URL=postgresql://nova:nova@db:5432/nova
+      - CHECK_MODE=fixture
+      - FIXTURE_NAME=in_stock.html
     depends_on:
       - db
-    restart: unless-stopped
+      - api  # L'API exécute migrations/seed au démarrage (start.sh), le worker en dépend
+    restart: "no"
 
 volumes:
   postgres_data:
