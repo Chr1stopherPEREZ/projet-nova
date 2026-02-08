@@ -18,8 +18,7 @@ services:
       - POSTGRES_USER=nova
       - POSTGRES_PASSWORD=nova
       - POSTGRES_DB=nova
-    ports:
-      - "5432:5432"
+    # Port non exposé (accès interne Docker uniquement, évite les conflits locaux)
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped

@@ -23,6 +23,10 @@ build/
 .coverage
 htmlcov/
 
+# Local DB (tests/dev)
+test.db
+*.db
+
 # Docker
 *.log
 
