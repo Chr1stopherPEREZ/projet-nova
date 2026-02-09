@@ -8,8 +8,13 @@ services:
     environment:
       - APP_ENV=development
       - DATABASE_URL=postgresql://nova:nova@db:5432/nova
+      - CHECK_MODE=fixture
+      - FIXTURE_NAME=in_stock.html
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
     depends_on:
       - db
+      - mailhog
     restart: unless-stopped
 
   db:

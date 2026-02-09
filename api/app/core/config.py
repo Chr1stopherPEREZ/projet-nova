@@ -29,6 +29,11 @@ class Settings(BaseSettings):
     check_mode: str = "fixture"  # "fixture" = mode déterministe, autre = not implemented
     fixture_name: str = "in_stock.html"  # nom du fichier fixture à utiliser
 
+    # SMTP (Mailhog en dev)
+    smtp_host: str = "mailhog"
+    smtp_port: int = 1025
+    smtp_from: str = "noreply@nova.dev"
+
     @property
     def cors_origins_list(self) -> list[str]:
         """Parse CORS_ORIGINS en liste (séparé par virgules)."""

@@ -44,3 +44,8 @@ evidence/*
 !evidence/lot3/*
 !evidence/lot4/
 !evidence/lot4/*
+!evidence/lot5/
+!evidence/lot5/*
+
+# Fichiers temporaires curl
+cookies.txt
