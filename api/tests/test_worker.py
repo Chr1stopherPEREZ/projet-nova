@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.models.watch import Watch, WatchStatus, StockState
 from app.models.watch_check import WatchCheck
-from app.worker import load_fixture, analyze_fixture, run_check, FIXTURES_DIR
+from app.services.check_engine import load_fixture, analyze_fixture, run_check, FIXTURES_DIR
 
 
 class TestFixtureLoading:
@@ -95,7 +95,7 @@ class TestRunCheck:
         assert count_before == 0
         
         # Exécuter le check
-        check = run_check(db_session, watch, "in_stock.html")
+        check, _, _ = run_check(db_session, watch, "in_stock.html", commit=True)
         
         # Vérifier qu'un check a été créé
         count_after = db_session.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).count()
@@ -136,7 +136,7 @@ class TestRunCheck:
         assert watch.last_checked_at is None
         
         # Exécuter le check
-        run_check(db_session, watch, "in_stock.html")
+        run_check(db_session, watch, "in_stock.html", commit=True)
         db_session.refresh(watch)
         
         # L'état de la watch est mis à jour
@@ -167,8 +167,8 @@ class TestRunCheck:
         db_session.refresh(watch)
         
         # Exécuter plusieurs checks avec la même fixture
-        check1 = run_check(db_session, watch, "in_stock.html")
-        check2 = run_check(db_session, watch, "in_stock.html")
+        check1, _, _ = run_check(db_session, watch, "in_stock.html", commit=True)
+        check2, _, _ = run_check(db_session, watch, "in_stock.html", commit=True)
         
         # Les deux checks ont le même résultat
         assert check1.stock_state == check2.stock_state == StockState.IN_STOCK.value

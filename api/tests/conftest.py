@@ -69,4 +69,16 @@ def registered_user(client, test_user_data):
         "cookies": response.cookies,
     }
 
+@pytest.fixture(autouse=True)
+def reset_email_service_after_test():
+    """
+    Fixture auto-exécutée après chaque test pour réinitialiser l'EmailService.
+    Évite les fuites d'état global entre tests.
+    """
+    yield  # Le test s'exécute ici
+    # Cleanup après le test
+    from app.services.email import reset_email_service
+    reset_email_service()
+
+
 # Conftest.py
