@@ -32,10 +32,11 @@ C'est tout ! Les migrations et le seed user sont appliqués automatiquement au d
 ## Objectifs du projet
 Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité.
 
-**État actuel (Lot 4) :**
+**État actuel (Lot 5) :**
 - ✅ **Lot 1-3** : Authentification + gestion des watches (suivis)
 - ✅ **Lot 4** : Worker de check déterministe (fixtures) — vérification de stock via fichiers HTML locaux, persistance en DB
-- 🔜 **Lot 5** : Orchestration + notifications email (Mailhog)
+- ✅ **Lot 5** : Orchestration (`POST /jobs/run`) + notifications email (Mailhog)
+- 🔜 **Lot 6** : Frontend skeleton + Auth
 
 ## Structure de la documentation
 Le projet est entièrement documenté pour garantir une implémentation fluide et cohérente :
@@ -101,7 +102,7 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local — Lot 4 (actuel)
+### Démarrage local — Lot 5 (actuel)
 
 ```bash
 # Lancer tous les services (migrations appliquées automatiquement via start.sh)
@@ -189,9 +190,39 @@ curl -X DELETE http://localhost:8000/watches/{watch_id} \
 ### Tests
 
 ```bash
-# Exécuter tous les tests (30 tests : 11 auth + 10 watches + 9 worker)
+# Exécuter tous les tests (38 tests : 11 auth + 8 jobs + 10 watches + 9 worker)
 docker compose exec api pytest tests/ -v
 ```
+
+### Jobs — Orchestration (Lot 5)
+
+L'endpoint `POST /jobs/run` permet de déclencher des checks de stock via l'API et d'envoyer des notifications par email si un changement est détecté.
+
+```bash
+# Récupérer le CSRF token depuis les cookies
+CSRF=$(cat cookies.txt | grep csrf_token | awk '{print $7}')
+
+# Run sur une watch spécifique
+curl -X POST http://localhost:8000/jobs/run \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: $CSRF" \
+  -b cookies.txt \
+  -d '{"watch_id":"<uuid>"}'
+
+# Run sur toutes les watches ACTIVE
+curl -X POST http://localhost:8000/jobs/run \
+  -H "Content-Type: application/json" \
+  -H "X-CSRF-Token: $CSRF" \
+  -b cookies.txt \
+  -d '{"run_all": true}'
+```
+
+**Comportement :**
+- Si changement détecté (stock_state différent) → email envoyé via Mailhog
+- Premier check = pas d'email (pas de référence pour comparer)
+- Email visible sur http://localhost:8025
+
+Pour plus de détails : [`evidence/lot5/commands.md`](./evidence/lot5/commands.md)
 
 ### Worker (Lot 4)
 
@@ -216,11 +247,11 @@ docker compose exec db psql -U nova -d nova -c "SELECT stock_state, http_status,
 | `CHECK_MODE` | `fixture` | Mode de check (seul `fixture` supporté pour Lot 4) |
 | `FIXTURE_NAME` | `in_stock.html` | Fichier fixture à utiliser |
 
-### Lot 5+ (à venir)
+### Lot 6+ (à venir)
 
-- **Orchestration** : Endpoint `POST /jobs/run` pour déclencher des checks
-- **Notifications** : Alertes email via Mailhog/SMTP si changement de stock
 - **Frontend** : Dashboard utilisateur (http://localhost:3000)
+- **Robustesse** : Gestion d'erreurs, validations, CORS
+- **Tests intégration** : Happy path complet
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
 
