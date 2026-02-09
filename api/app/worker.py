@@ -11,15 +11,11 @@ Env vars:
 """
 import logging
 import sys
-from datetime import datetime, timezone
-from pathlib import Path
-
-from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models.watch import Watch, WatchStatus, StockState
-from app.models.watch_check import WatchCheck
+from app.models.watch import Watch, WatchStatus
+from app.services.check_engine import load_fixture, run_check, FIXTURES_DIR
 
 # Configuration du logging
 logging.basicConfig(
@@ -29,104 +25,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Chemin vers les fixtures (resolve() pour robustesse si structure change)
-FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures" / "checks"
 
-
-def load_fixture(fixture_name: str) -> bytes:
-    """
-    Charge une fixture HTML depuis le dossier fixtures/checks.
-    
-    Args:
-        fixture_name: Nom du fichier fixture (ex: "in_stock.html")
-    
-    Returns:
-        Contenu de la fixture en bytes
-    
-    Raises:
-        FileNotFoundError: Si la fixture n'existe pas
-    """
-    fixture_path = FIXTURES_DIR / fixture_name
-    if not fixture_path.exists():
-        raise FileNotFoundError(f"Fixture non trouvée: {fixture_path}")
-    return fixture_path.read_bytes()
-
-
-def analyze_fixture(content: bytes, fixture_name: str) -> tuple[StockState, int]:
-    """
-    Analyse déterministe du contenu d'une fixture.
-    
-    Règle simple et stable:
-    - Si le contenu contient "ADD_TO_CART" => IN_STOCK
-    - Sinon => OUT_OF_STOCK
-    
-    Args:
-        content: Contenu de la fixture en bytes
-        fixture_name: Nom de la fixture (pour logs)
-    
-    Returns:
-        Tuple (stock_state, http_status_simulé)
-    """
-    text = content.decode("utf-8", errors="replace")
-    
-    # Règle déterministe simple
-    if "ADD_TO_CART" in text:
-        stock_state = StockState.IN_STOCK
-    else:
-        stock_state = StockState.OUT_OF_STOCK
-    
-    # HTTP status simulé (fixture = succès)
-    http_status = 200
-    
-    logger.info(f"Analyse fixture '{fixture_name}': stock_state={stock_state.value}, http_status={http_status}")
-    return stock_state, http_status
-
-
-def run_check(db: Session, watch: Watch, fixture_name: str) -> WatchCheck:
-    """
-    Exécute un check déterministe sur une watch.
-    
-    Args:
-        db: Session SQLAlchemy
-        watch: Watch à vérifier
-        fixture_name: Nom de la fixture à utiliser
-    
-    Returns:
-        WatchCheck créé et persisté
-    """
-    logger.info(f"Check watch_id={watch.id} (url={watch.original_url}) avec fixture '{fixture_name}'")
-    
-    # Charger et analyser la fixture
-    content = load_fixture(fixture_name)
-    stock_state, http_status = analyze_fixture(content, fixture_name)
-    
-    # Créer le WatchCheck
-    check = WatchCheck(
-        watch_id=watch.id,
-        checked_at=datetime.now(timezone.utc),
-        stock_state=stock_state.value,
-        http_status=http_status,
-        fetch_mode="FIXTURE",
-        duration_ms=0,  # Instantané avec fixtures
-    )
-    
-    db.add(check)
-    
-    # Mettre à jour la watch
-    watch.stock_state = stock_state
-    watch.last_checked_at = check.checked_at
-    
-    db.commit()
-    db.refresh(check)
-    
-    logger.info(f"WatchCheck créé: id={check.id}, watch_id={watch.id}, stock_state={stock_state.value}")
-    return check
-
-
-def get_watches_to_check(db: Session) -> list[Watch]:
+def get_watches_to_check(db) -> list[Watch]:
     """
     Récupère les watches ACTIVE à vérifier.
-    Pour LOT 4, on prend toutes les watches ACTIVE (ou la première disponible).
+    Pour LOT 4, on prend toutes les watches ACTIVE.
     """
     watches = db.query(Watch).filter(Watch.watch_status == WatchStatus.ACTIVE).all()
     return watches
@@ -176,7 +79,7 @@ def main() -> None:
         checks_created = 0
         for watch in watches:
             try:
-                check = run_check(db, watch, fixture_name)
+                check, _, _ = run_check(db, watch, fixture_name, commit=True)
                 checks_created += 1
             except Exception as e:
                 logger.error(f"Erreur check watch_id={watch.id}: {e}", exc_info=True)
