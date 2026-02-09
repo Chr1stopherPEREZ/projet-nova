@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.routes.auth import router as auth_router
 from app.api.routes.watches import router as watches_router
+from app.api.routes.jobs import router as jobs_router
 
 app = FastAPI(
     title="Nova API",
@@ -26,6 +27,7 @@ app.add_middleware(
 # Routes
 app.include_router(auth_router)
 app.include_router(watches_router)
+app.include_router(jobs_router)
 
 
 @app.get("/health")
