@@ -1,6 +1,7 @@
 # IDE
 .idea/
-.vscode/
+.vscode/*
+!.vscode/extensions.json
 *.swp
 *.swo
 
@@ -27,25 +28,16 @@ htmlcov/
 test.db
 *.db
 
-# Docker
+# Logs
+logs/
 *.log
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Evidence (généré localement, sauf lots versionnés)
-evidence/*
-!evidence/lot1/
-!evidence/lot1/*
-!evidence/lot2/
-!evidence/lot2/*
-!evidence/lot3/
-!evidence/lot3/*
-!evidence/lot4/
-!evidence/lot4/*
-!evidence/lot5/
-!evidence/lot5/*
+# Docker
+docker-compose.override.yml
 
-# Fichiers temporaires curl
+# Fichiers temporaires
 cookies.txt
