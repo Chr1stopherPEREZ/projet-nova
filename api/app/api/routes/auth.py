@@ -133,6 +133,33 @@ def logout(
     return None
 
 
+@router.get("/me", response_model=UserResponse)
+def get_current_user_info(current_user: User = Depends(get_current_user)):
+    """
+    Retourne les informations de l'utilisateur connecté.
+    Utilisé pour vérifier l'état d'authentification (route guard).
+    """
+    return UserResponse(id=current_user.id, email=current_user.email, role=current_user.role.value)
+
+
+@router.get("/_csrf-bootstrap", status_code=status.HTTP_204_NO_CONTENT)
+def csrf_bootstrap(response: Response):
+    """
+    Bootstrap CSRF : pose le cookie csrf_token si absent.
+    À appeler au démarrage de l'app frontend.
+    """
+    response.set_cookie(
+        key="csrf_token",
+        value=generate_csrf_token(),
+        httponly=False,
+        secure=False,
+        samesite="lax",
+        path="/",
+        max_age=60 * 60 * 24,
+    )
+    return None
+
+
 @router.post("/_csrf-check", status_code=status.HTTP_204_NO_CONTENT)
 def csrf_check(
     current_user: User = Depends(get_current_user),
