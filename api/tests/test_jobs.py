@@ -26,14 +26,14 @@ class TestJobsRun:
             "/jobs/run",
             json={"run_all": True},
             cookies={"access_token": cookies.get("access_token"), "csrf_token": cookies.get("csrf_token")},
-            # Pas de header X-CSRF-Token
+            # Pas d'en-tête X-CSRF-Token
         )
         assert response.status_code == 403
         assert "CSRF" in response.json()["detail"]
 
     def test_run_job_on_other_user_watch_returns_404(self, client, db_session):
-        """Test POST /jobs/run sur watch d'un autre user => 404 (isolation)."""
-        # User A crée une watch
+        """Test POST /jobs/run sur suivi d'un autre utilisateur => 404 (isolation)."""
+        # L'utilisateur A crée un suivi
         user_a_data = {"email": "usera@example.com", "password": "password123"}
         reg_a = client.post("/auth/register", json=user_a_data)
         cookies_a = reg_a.cookies
@@ -46,13 +46,13 @@ class TestJobsRun:
         )
         watch_id = create_response.json()["id"]
 
-        # User B s'inscrit
+        # L'utilisateur B s'inscrit
         user_b_data = {"email": "userb@example.com", "password": "password123"}
         reg_b = client.post("/auth/register", json=user_b_data)
         cookies_b = reg_b.cookies
         csrf_b = cookies_b.get("csrf_token")
 
-        # User B tente de run sur la watch de User A
+        # L'utilisateur B tente de lancer un check sur le suivi de l'utilisateur A
         response = client.post(
             "/jobs/run",
             json={"watch_id": watch_id},
@@ -66,7 +66,7 @@ class TestJobsRun:
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
         
-        # Créer une watch
+        # Créer un suivi
         create_response = client.post(
             "/watches",
             json={"url": "https://example.com/product/test-job"},
@@ -75,11 +75,11 @@ class TestJobsRun:
         )
         watch_id = create_response.json()["id"]
         
-        # Setup fake email backend
+        # Configuration du backend email simulé
         fake_backend = FakeEmailBackend()
         set_email_service(EmailService(fake_backend))
         
-        # Run le job
+        # Lancer le job
         response = client.post(
             "/jobs/run",
             json={"watch_id": watch_id},
@@ -105,7 +105,7 @@ class TestJobsRun:
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
         
-        # Créer une watch
+        # Créer un suivi
         create_response = client.post(
             "/watches",
             json={"url": "https://example.com/product/no-change"},
@@ -114,11 +114,11 @@ class TestJobsRun:
         )
         watch_id = create_response.json()["id"]
         
-        # Setup fake email backend
+        # Configuration du backend email simulé
         fake_backend = FakeEmailBackend()
         set_email_service(EmailService(fake_backend))
         
-        # Run 1
+        # Lancement 1
         client.post(
             "/jobs/run",
             json={"watch_id": watch_id},
@@ -126,7 +126,7 @@ class TestJobsRun:
             headers={"X-CSRF-Token": csrf_token},
         )
         
-        # Run 2 (même fixture => pas de changement)
+        # Lancement 2 (même fixture => pas de changement)
         response = client.post(
             "/jobs/run",
             json={"watch_id": watch_id},
@@ -145,7 +145,7 @@ class TestJobsRun:
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
         
-        # Créer une watch
+        # Créer un suivi
         create_response = client.post(
             "/watches",
             json={"url": "https://example.com/product/change-test"},
@@ -154,14 +154,14 @@ class TestJobsRun:
         )
         watch_id = create_response.json()["id"]
         
-        # Setup fake email backend
+        # Configuration du backend email simulé
         fake_backend = FakeEmailBackend()
         set_email_service(EmailService(fake_backend))
         
         # Import settings pour pouvoir le modifier
         from app.core.config import settings
         
-        # Run 1 avec in_stock.html
+        # Lancement 1 avec in_stock.html
         monkeypatch.setattr(settings, "fixture_name", "in_stock.html")
         client.post(
             "/jobs/run",
@@ -170,7 +170,7 @@ class TestJobsRun:
             headers={"X-CSRF-Token": csrf_token},
         )
         
-        # Run 2 avec out_of_stock.html => changement!
+        # Lancement 2 avec out_of_stock.html => changement !
         monkeypatch.setattr(settings, "fixture_name", "out_of_stock.html")
         response = client.post(
             "/jobs/run",
@@ -191,11 +191,11 @@ class TestJobsRun:
         assert "OUT_OF_STOCK" in email["body"]
 
     def test_run_job_run_all_executes_on_active_watches(self, client, registered_user, db_session):
-        """Test POST /jobs/run avec run_all=true exécute sur les watches ACTIVE."""
+        """Test POST /jobs/run avec run_all=true exécute sur les suivis ACTIVE."""
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
         
-        # Créer 2 watches
+        # Créer 2 suivis
         client.post(
             "/watches",
             json={"url": "https://example.com/product/run-all-1"},
@@ -209,11 +209,11 @@ class TestJobsRun:
             headers={"X-CSRF-Token": csrf_token},
         )
         
-        # Setup fake email backend
+        # Configuration du backend email simulé
         fake_backend = FakeEmailBackend()
         set_email_service(EmailService(fake_backend))
         
-        # Run all
+        # Tout lancer
         response = client.post(
             "/jobs/run",
             json={"run_all": True},

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 
 class TestCreateWatch:
-    """Tests de création de watch."""
+    """Tests de création de suivi (watch)."""
 
     def test_create_watch_success(self, client, registered_user):
         """Test POST /watches OK (auth + csrf) => 201."""
@@ -56,7 +56,7 @@ class TestCreateWatch:
             "/watches",
             json={"url": "https://example.com/product/123"},
             cookies={"access_token": cookies.get("access_token"), "csrf_token": cookies.get("csrf_token")},
-            # Pas de header X-CSRF-Token
+        # Pas de header X-CSRF-Token
         )
         assert response.status_code == 403
         assert "CSRF" in response.json()["detail"]
@@ -65,14 +65,14 @@ class TestCreateWatch:
         """Test POST /watches avec URL déjà existante => 400."""
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
-        # Crée une première watch
+        # Crée un premier suivi
         client.post(
             "/watches",
             json={"url": "https://example.com/product/dup"},
             cookies={"access_token": cookies.get("access_token"), "csrf_token": csrf_token},
             headers={"X-CSRF-Token": csrf_token},
         )
-        # Tente de créer une seconde watch avec la même URL
+        # Tente de créer un second suivi avec la même URL
         response = client.post(
             "/watches",
             json={"url": "https://example.com/product/dup"},
@@ -84,20 +84,20 @@ class TestCreateWatch:
 
 
 class TestListWatches:
-    """Tests de listing des watches."""
+    """Tests de listing des suivis."""
 
     def test_list_watches_returns_created_watch(self, client, registered_user):
-        """Test GET /watches retourne la watch créée => 200."""
+        """Test GET /watches retourne le suivi créé => 200."""
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
-        # Crée une watch
+        # Crée un suivi
         client.post(
             "/watches",
             json={"url": "https://example.com/product/list-test"},
             cookies={"access_token": cookies.get("access_token"), "csrf_token": csrf_token},
             headers={"X-CSRF-Token": csrf_token},
         )
-        # Liste les watches
+        # Liste les suivis
         response = client.get(
             "/watches",
             cookies={"access_token": cookies.get("access_token")},
@@ -115,13 +115,13 @@ class TestListWatches:
 
 
 class TestGetWatch:
-    """Tests de récupération d'une watch par ID."""
+    """Tests de récupération d'un suivi par ID."""
 
     def test_get_watch_by_id_success(self, client, registered_user):
         """Test GET /watches/{id} OK => 200."""
         cookies = registered_user["cookies"]
         csrf_token = cookies.get("csrf_token")
-        # Crée une watch
+        # Crée un suivi
         create_response = client.post(
             "/watches",
             json={"url": "https://example.com/product/detail-test"},
@@ -129,7 +129,7 @@ class TestGetWatch:
             headers={"X-CSRF-Token": csrf_token},
         )
         watch_id = create_response.json()["id"]
-        # Récupère la watch par ID
+        # Récupère le suivi par ID
         response = client.get(
             f"/watches/{watch_id}",
             cookies={"access_token": cookies.get("access_token")},
@@ -154,8 +154,8 @@ class TestWatchIsolation:
     """Tests d'isolation entre utilisateurs."""
 
     def test_user_cannot_see_other_user_watch(self, client, db_session, test_user_data):
-        """Test isolation : un user B ne voit pas les watches du user A."""
-        # User A crée une watch
+        """Test isolation : un user B ne voit pas les suivis du user A."""
+        # User A crée un suivi
         user_a_data = {"email": "usera@example.com", "password": "password123"}
         reg_a = client.post("/auth/register", json=user_a_data)
         cookies_a = reg_a.cookies
@@ -173,14 +173,14 @@ class TestWatchIsolation:
         reg_b = client.post("/auth/register", json=user_b_data)
         cookies_b = reg_b.cookies
 
-        # User B tente d'accéder à la watch de User A
+        # User B tente d'accéder au suivi de User A
         response = client.get(
             f"/watches/{watch_id}",
             cookies={"access_token": cookies_b.get("access_token")},
         )
         assert response.status_code == 404  # 404 pour éviter l'énumération
 
-        # User B liste ses watches (doit être vide)
+        # User B liste ses suivis (doit être vide)
         list_response = client.get(
             "/watches",
             cookies={"access_token": cookies_b.get("access_token")},
