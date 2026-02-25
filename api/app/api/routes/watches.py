@@ -12,8 +12,10 @@ from app.core.database import get_db
 from app.core.csrf import verify_csrf
 from app.models.user import User
 from app.models.watch import Watch, WatchStatus, StockState
-from app.schemas.watch import WatchCreate, WatchOut, WatchUpdate
+from app.schemas.watch import WatchCreate, WatchOut, WatchUpdate, PreviewRequest, PreviewResponse, WatchCheckOut
 from app.api.deps import get_current_user
+from app.services.nike_parser import fetch_preview as fetch_nike_preview
+from app.services.shopify_parser import is_shopify_url, fetch_shopify_preview
 
 router = APIRouter(prefix="/watches", tags=["watches"])
 
@@ -47,15 +49,16 @@ def create_watch(
     url_str = str(watch_data.url)
     normalized = normalize_url(url_str)
 
-    # Vérifie si une watch existe déjà pour cette URL normalisée
+    # Vérifie si une watch existe déjà pour cette URL normalisée + variant_sku
     existing = db.query(Watch).filter(
         Watch.user_id == current_user.id,
         Watch.normalized_url == normalized,
+        Watch.variant_sku == watch_data.variant_sku,  # None == None permet les watches globales uniques
     ).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Watch already exists for this URL",
+            detail="Un suivi existe déjà pour cette URL et cette variante",
         )
 
     # Crée la watch
@@ -64,6 +67,9 @@ def create_watch(
         original_url=url_str,
         normalized_url=normalized,
         label=watch_data.label,
+        variant_sku=watch_data.variant_sku,
+        variant_selector=watch_data.variant_selector,
+        variant_meta=watch_data.variant_meta,
         watch_status=WatchStatus.ACTIVE,
         stock_state=StockState.UNKNOWN,
     )
@@ -78,6 +84,9 @@ def create_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        variant_sku=watch.variant_sku,
+        variant_selector=watch.variant_selector,
+        variant_meta=watch.variant_meta,
     )
 
 
@@ -99,6 +108,9 @@ def list_watches(
             status=w.watch_status.value,
             stock_state=w.stock_state.value,
             last_checked_at=w.last_checked_at,
+            variant_sku=w.variant_sku,
+            variant_selector=w.variant_selector,
+            variant_meta=w.variant_meta,
         )
         for w in watches
     ]
@@ -121,7 +133,7 @@ def get_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Watch not found",
+            detail="Suivi non trouvé",
         )
     return WatchOut(
         id=watch.id,
@@ -130,6 +142,9 @@ def get_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        variant_sku=watch.variant_sku,
+        variant_selector=watch.variant_selector,
+        variant_meta=watch.variant_meta,
     )
 
 
@@ -152,11 +167,19 @@ def update_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Watch not found",
+            detail="Suivi non trouvé",
         )
 
     if watch_data.status:
         watch.watch_status = WatchStatus(watch_data.status)
+    if watch_data.label is not None:
+        watch.label = watch_data.label
+    if watch_data.variant_sku is not None:
+        watch.variant_sku = watch_data.variant_sku
+    if watch_data.variant_selector is not None:
+        watch.variant_selector = watch_data.variant_selector
+    if watch_data.variant_meta is not None:
+        watch.variant_meta = watch_data.variant_meta
 
     db.commit()
     db.refresh(watch)
@@ -168,6 +191,9 @@ def update_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        variant_sku=watch.variant_sku,
+        variant_selector=watch.variant_selector,
+        variant_meta=watch.variant_meta,
     )
 
 
@@ -189,7 +215,7 @@ def delete_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Watch not found",
+            detail="Suivi non trouvé",
         )
 
     db.delete(watch)
@@ -197,9 +223,81 @@ def delete_watch(
     return None
 
 
-# NOTE: Les routes suivantes sont définies dans docs/07-api-spec.md mais non implémentées
-# pour le Lot 3. Elles seront ajoutées dans un lot ultérieur (worker/checks) :
-# - GET /watches/{id}/checks (historique des contrôles)
+@router.get("/{watch_id}/checks", response_model=list[WatchCheckOut])
+def get_watch_checks(
+    watch_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Récupère l'historique des checks pour une watch.
+    Auth obligatoire.
+    """
+    from app.models.watch_check import WatchCheck
+    
+    watch = db.query(Watch).filter(
+        Watch.id == watch_id,
+        Watch.user_id == current_user.id,
+    ).first()
+    if not watch:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Suivi non trouvé",
+        )
+    
+    checks = db.query(WatchCheck).filter(
+        WatchCheck.watch_id == watch_id
+    ).order_by(WatchCheck.checked_at.desc()).limit(50).all()
+    
+    return [
+        WatchCheckOut(
+            id=c.id,
+            watch_id=c.watch_id,
+            checked_at=c.checked_at,
+            stock_state=c.stock_state,
+            http_status=c.http_status,
+            fetch_mode=c.fetch_mode,
+            duration_ms=c.duration_ms,
+            error_code=c.error_code,
+            error_message=c.error_message,
+            details=c.details,
+        )
+        for c in checks
+    ]
+
+
+@router.post("/preview", response_model=PreviewResponse)
+async def preview_product(
+    request: PreviewRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Analyse une URL produit et retourne les variantes disponibles.
+    Utile pour choisir coloris/taille avant de créer une watch.
+    Auth obligatoire.
+    """
+    url_str = str(request.url)
+    
+    try:
+        if is_shopify_url(url_str):
+            preview = await fetch_shopify_preview(url_str)
+        else:
+            preview = await fetch_nike_preview(url_str)
+            # Marquer Nike comme expérimental
+            if preview.source == "nike":
+                preview.debug_info = preview.debug_info or {}
+                preview.debug_info["experimental"] = True
+                preview.debug_info["warning"] = "Le support Nike est expérimental. La détection des variantes peut être imprécise."
+        
+        return preview
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Impossible d'analyser l'URL: {str(e)}",
+        )
+
+
+# NOTE: Route notifications non implémentée
 # - GET /watches/{id}/notifications (historique des notifications)
 
 # Watches.py

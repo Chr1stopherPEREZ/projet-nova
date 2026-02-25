@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, String, Enum, DateTime, Integer, ForeignKey, UniqueConstraint, Uuid
+from sqlalchemy import Column, String, Enum, DateTime, Integer, ForeignKey, UniqueConstraint, Uuid, JSON
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -30,7 +30,7 @@ class Watch(Base):
 
     __tablename__ = "watches"
     __table_args__ = (
-        UniqueConstraint("user_id", "normalized_url", name="uq_user_normalized_url"),
+        UniqueConstraint("user_id", "normalized_url", "variant_sku", name="uq_user_url_variant"),
     )
 
     id = Column(Uuid, primary_key=True, default=uuid.uuid4)
@@ -44,6 +44,9 @@ class Watch(Base):
     last_checked_at = Column(DateTime(timezone=True), nullable=True)
     next_check_at = Column(DateTime(timezone=True), nullable=True)
     fail_count = Column(Integer, nullable=False, default=0)
+    variant_sku = Column(String, nullable=True)  # SKU de la variante surveillée
+    variant_selector = Column(JSON, nullable=True)  # Sélecteur de variante: {"Couleur": "Noir", "Taille": "M"}
+    variant_meta = Column(JSON, nullable=True)  # Métadonnées: {couleur, taille, codeCouleur, labelTaille, etc.}
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
@@ -52,4 +55,4 @@ class Watch(Base):
     site_profile = relationship("SiteProfile", back_populates="watches")
     checks = relationship("WatchCheck", back_populates="watch", cascade="all, delete-orphan")
 
-# Watch.py
+# Watch.py MODELS
