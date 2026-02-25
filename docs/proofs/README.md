@@ -1,4 +1,4 @@
-# Preuves visuelles — Semaines 1 & 2 (Lots 1–5)
+# Preuves visuelles — Semaines 1 à 3 (Lots 1–7)
 
 > Ce dossier contient les captures d'écran prouvant le bon fonctionnement du projet Nova.
 
@@ -58,6 +58,31 @@
 - ✅ 10 tests jobs passent (`s2-01-pytest-40tests.png`)
 
 ---
+
+## Semaine 3 — Lots 6–7 (Front + Watches UI)
+
+| Fichier | Action | Description |
+|---------|--------|-------------|
+| `s3-01-lot6-login-page.png` | Login | Écran de connexion (Lot 6) |
+| `s3-02-lot6-network-csrf.png` | Réseau | CSRF/cookies OK (Lot 6) |
+| `s3-03-lot6-network-login.png` | Réseau | Requête de login (Lot 6) |
+| `s3-04-lot6-dashboard.png` | UI | Dashboard après login (Lot 6) |
+| `s3-05-lot6-cookies.png` | Réseau | Cookies en place (Lot 6) |
+| `s3-06-lot6-redirect.png` | UI | Redirection guard (Lot 6) |
+| `s3-07-lot6-signup.png` | UI | Écran d'inscription (Lot 6) |
+| `s3-08-lot7-watches-empty.png` | UI | État vide "Aucun suivi" (Lot 7) |
+| `s3-09-lot7-create-watch-filled.png` | UI | Création d'un suivi (Lot 7) |
+| `s3-10-lot7-preview-shopify-variant.png` | UI | Preview Shopify (sélection variantes) (Lot 7) |
+| `s3-11-lot7-watches-list.png` | UI | Liste des suivis (Lot 7) |
+| `s3-12-lot7-watch-detail.png` | UI | Détail du suivi (Lot 7) |
+| `s3-13-lot7-run-check-success.png` | Action | Run check (succès) (Lot 7) |
+| `s3-14-lot7-run-check-history.png` | UI | Historique avec nouveau check (Lot 7) |
+| `s3-15-lot7-delete-success.png` | Action | Suppression du suivi (Lot 7) |
+
+<!-- Notes
+Mise à jour: ajout d'une section Lot 7 et harmonisation des noms de fichiers avec le préfixe s3-XX-lot7-…
+Les anciennes références vers l'ancien dossier de captures Lot 7 sont obsolètes et ont été retirées des documents.
+-->
 
 ## Reproduction
 
@@ -123,3 +148,5 @@ curl -i -b cookies.txt -X POST http://localhost:8000/jobs/run \
 - [`evidence/lot3/`](../../evidence/lot3/) — Commandes et sorties texte Lot 3
 - [`evidence/lot4/`](../../evidence/lot4/) — Commandes et sorties texte Lot 4
 - [`evidence/lot5/`](../../evidence/lot5/) — Commandes et sorties texte Lot 5
+- [`evidence/lot6/`](../../evidence/lot6/) — Commandes et sorties texte Lot 6
+- [`evidence/lot7/`](../../evidence/lot7/) — Commandes et sorties texte Lot 7

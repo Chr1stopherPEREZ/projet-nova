@@ -32,11 +32,20 @@ C'est tout ! Les migrations et le seed user sont appliqués automatiquement au d
 ## Objectifs du projet
 Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité.
 
-**État actuel (Lot 5) :**
-- ✅ **Lot 1-3** : Authentification + gestion des watches (suivis)
-- ✅ **Lot 4** : Worker de check déterministe (fixtures) — vérification de stock via fichiers HTML locaux, persistance en DB
-- ✅ **Lot 5** : Orchestration (`POST /jobs/run`) + notifications email (Mailhog)
-- 🔜 **Lot 6** : Frontend skeleton + Auth
+**État actuel (Lot 7) :**
+
+| Lot | Description | Statut |
+|-----|-------------|--------|
+| **Lot 1** | Skeleton + Docker + preuve "ça tourne" | ✅ Clos |
+| **Lot 2** | DB + migrations + auth | ✅ Clos |
+| **Lot 3** | Routes business (watches CRUD) | ✅ Clos |
+| **Lot 4** | Worker check déterministe (fixtures) | ✅ Clos |
+| **Lot 5** | Orchestration + notification email (Mailhog) | ✅ Clos |
+| **Lot 6** | Frontend skeleton + Auth + CSRF bootstrap | ✅ Clos |
+| **Lot 7** | Watches UI + Run check | ✅ Clos |
+| **Lot 8** | Robustesse API + UX | ⏳ À venir |
+| **Lot 9** | Pack tests + intégration | ⏳ À venir |
+| **Lot 10** | Docs jury + release | ⏳ À venir |
 
 ## Structure de la documentation
 Le projet est entièrement documenté pour garantir une implémentation fluide et cohérente :
@@ -76,8 +85,29 @@ Le projet est entièrement documenté pour garantir une implémentation fluide e
 
 ## Structure du projet
 
-> **Note** : Les dossiers `web/` et `worker/` à la racine sont des **placeholders** pour les futurs composants.  
-> Le worker actuel (LOT 4) est implémenté dans `api/app/worker.py` et s'exécute via Docker Compose.
+```
+projet-nova/
+├── api/                 # Backend FastAPI (Python 3.12+)
+│   ├── app/             # Code applicatif
+│   │   ├── api/routes/  # Endpoints REST
+│   │   ├── core/        # Config, DB, CSRF, JWT
+│   │   ├── models/      # Modèles SQLAlchemy
+│   │   ├── schemas/     # Schémas Pydantic
+│   │   ├── services/    # Logique métier
+│   │   └── worker.py    # Worker de check
+│   └── tests/           # Tests pytest
+├── web/                 # Frontend React + Vite + Tailwind
+│   └── src/
+│       ├── api/         # Client API (apiFetch, CSRF)
+│       ├── components/  # Composants UI réutilisables
+│       └── pages/       # Pages de l'application
+├── worker/              # Documentation du worker (voir worker/README.md)
+├── docs/                # Documentation technique complète
+├── evidence/            # Preuves par lot (captures, commandes)
+└── docker-compose.yml   # Orchestration des services
+```
+
+> **Note** : Le worker s'exécute depuis le code dans `api/app/worker.py` via Docker Compose. Le dossier `worker/` à la racine contient uniquement la documentation.
 
 ## Stack Technique (Prévisionnelle)
 - **Backend** : Python 3.12+, FastAPI
@@ -247,11 +277,32 @@ docker compose exec db psql -U nova -d nova -c "SELECT stock_state, http_status,
 | `CHECK_MODE` | `fixture` | Mode de check (seul `fixture` supporté pour Lot 4) |
 | `FIXTURE_NAME` | `in_stock.html` | Fichier fixture à utiliser |
 
-### Lot 6+ (à venir)
+### Frontend (Lot 6-7)
 
-- **Frontend** : Dashboard utilisateur (http://localhost:3000)
-- **Robustesse** : Gestion d'erreurs, validations, CORS
-- **Tests intégration** : Happy path complet
+Le frontend React est disponible :
+
+```bash
+# Démarrage du frontend (dev)
+cd web && pnpm install && pnpm dev
+# → http://localhost:5173
+```
+
+**Pages implémentées :**
+- `/login` — Écran de connexion
+- `/dashboard` — Tableau de bord
+- `/watches` — Liste des suivis
+- `/watches/new` — Créer un suivi
+- `/watches/:id` — Détail d'un suivi + historique checks
+- `/settings` — Paramètres
+- `/help` — Aide
+
+**Fonctionnalités Lot 7 :**
+- CSRF bootstrap automatique au démarrage
+- Route guard (redirection `/login` si non authentifié)
+- Toggle activer/désactiver un suivi
+- Supprimer un suivi (avec confirmation)
+- Lancer un check manuellement
+- États UI : loading, empty state, error state
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
 

@@ -42,13 +42,13 @@ CHECK_MODE=fixture FIXTURE_NAME=in_stock.html python -m app.worker
 
 ## Prérequis
 
-- Au moins une watch **ACTIVE** doit exister en base de données (créée via `POST /watches`)
+- Au moins un suivi **ACTIF** doit exister en base de données (créé via `POST /watches`)
 - La fixture spécifiée doit exister dans `app/fixtures/checks/`
 
 ## Résultat
 
 Chaque exécution crée une ligne dans la table `watch_checks` avec :
-- `watch_id` : ID de la watch vérifiée
+- `watch_id` : ID du suivi vérifié
 - `checked_at` : Timestamp du check
 - `stock_state` : `IN_STOCK` ou `OUT_OF_STOCK`
 - `http_status` : `200` (simulé)
