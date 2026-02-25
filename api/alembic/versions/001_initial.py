@@ -1,4 +1,4 @@
-"""Initial migration - users, watches, watch_checks
+"""Migration initiale - utilisateurs, suivis (watches), checks
 
 Revision ID: 001_initial
 Revises: 
@@ -11,7 +11,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-# revision identifiers, used by Alembic.
+# identifiants de révision, utilisés par Alembic.
 revision: str = '001_initial'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
@@ -19,7 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Enum types
+    # Types Enum
     user_role = postgresql.ENUM('USER', 'ADMIN', name='user_role', create_type=False)
     user_role.create(op.get_bind(), checkfirst=True)
     
@@ -29,7 +29,7 @@ def upgrade() -> None:
     stock_state = postgresql.ENUM('IN_STOCK', 'OUT_OF_STOCK', 'UNKNOWN', 'BROKEN', name='stock_state', create_type=False)
     stock_state.create(op.get_bind(), checkfirst=True)
 
-    # Table users
+    # Table utilisateurs
     op.create_table(
         'users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -58,7 +58,7 @@ def upgrade() -> None:
     )
     op.create_index('idx_site_profiles_domain', 'site_profiles', ['domain_pattern'])
 
-    # Table watches
+    # Table suivis (watches)
     op.create_table(
         'watches',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -81,7 +81,7 @@ def upgrade() -> None:
     )
     op.create_index('idx_watches_due', 'watches', ['watch_status', 'next_check_at'])
 
-    # Table watch_checks
+    # Table checks de suivis
     op.create_table(
         'watch_checks',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -105,7 +105,7 @@ def downgrade() -> None:
     op.drop_table('site_profiles')
     op.drop_table('users')
     
-    # Drop enum types
+    # Supprimer les types enum
     op.execute('DROP TYPE IF EXISTS stock_state')
     op.execute('DROP TYPE IF EXISTS watch_status')
     op.execute('DROP TYPE IF EXISTS user_role')
