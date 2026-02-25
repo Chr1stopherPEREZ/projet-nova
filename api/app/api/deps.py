@@ -19,13 +19,16 @@ def get_current_user(
     db: Session = Depends(get_db),
 ) -> User:
     """Récupère l'utilisateur courant depuis le cookie JWT."""
+    if access_token is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Impossible de valider les identifiants",
+        )
+
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Impossible de valider les identifiants",
     )
-
-    if not access_token:
-        raise credentials_exception
 
     payload = decode_access_token(access_token)
     if payload is None:
@@ -60,7 +63,7 @@ def require_role(required_role: UserRole):
         if current_user.role != required_role and current_user.role != UserRole.ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Insufficient permissions",
+                detail="Permissions insuffisantes",
             )
         return current_user
     return role_checker
@@ -71,7 +74,7 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required",
+            detail="Accès administrateur requis",
         )
     return current_user
 

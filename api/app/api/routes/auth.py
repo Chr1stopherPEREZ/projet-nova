@@ -26,7 +26,7 @@ def register(user_data: UserCreate, response: Response, db: Session = Depends(ge
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered",
+            detail="Cet email est déjà enregistré",
         )
 
     # Crée l'utilisateur
@@ -56,7 +56,7 @@ def register(user_data: UserCreate, response: Response, db: Session = Depends(ge
     response.set_cookie(
         key="csrf_token",
         value=generate_csrf_token(),
-        httponly=False,  # Accessible au JS (Double Submit Cookie)
+        httponly=False,  # Accessible au JS (Mécanisme Double Submit Cookie)
         secure=False,
         samesite="lax",
         path="/",
@@ -77,7 +77,7 @@ def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db
     if not user or not verify_password(user_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
+            detail="Email ou mot de passe invalide",
         )
 
     # Crée le token JWT

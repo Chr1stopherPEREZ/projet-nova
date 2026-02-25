@@ -16,6 +16,13 @@ def verify_csrf(
     Vérifie la protection CSRF pour les requêtes mutables.
     Compare le cookie csrf_token avec le header X-CSRF-Token.
     """
+    # Contourner le CSRF en mode développement si explicitement demandé (ex: pour Swagger)
+    from app.core.config import settings
+    if settings.app_env == "development":
+        # On autorise le bypass si le header X-Skip-CSRF est présent ou par défaut en dev ?
+        # Pour Swagger, c'est plus simple de désactiver si development.
+        return
+
     # Les méthodes sûres (GET, HEAD, OPTIONS) ne nécessitent pas de vérification CSRF
     if request.method in ("GET", "HEAD", "OPTIONS"):
         return
