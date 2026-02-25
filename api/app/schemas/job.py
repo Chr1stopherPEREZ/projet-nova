@@ -16,9 +16,9 @@ class JobRunRequest(BaseModel):
     def validate_exclusive(self):
         """Vérifie que watch_id XOR run_all est fourni."""
         if self.watch_id is None and self.run_all is None:
-            raise ValueError("Either 'watch_id' or 'run_all' must be provided")
+            raise ValueError("Soit 'watch_id', soit 'run_all' doit être fourni")
         if self.watch_id is not None and self.run_all is not None:
-            raise ValueError("Cannot specify both 'watch_id' and 'run_all'")
+            raise ValueError("Impossible de spécifier à la fois 'watch_id' et 'run_all'")
         return self
 
 

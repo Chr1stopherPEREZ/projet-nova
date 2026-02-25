@@ -5,7 +5,7 @@ Ce worker exécute un check en mode fixture (déterministe).
 Il lit une fixture HTML locale et persiste le résultat dans watch_checks.
 
 Usage: python -m app.worker
-Env vars:
+Variables d'environnement :
     CHECK_MODE=fixture (obligatoire pour activer)
     FIXTURE_NAME=in_stock.html (nom du fichier fixture)
 """
