@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import WatchesPage from './pages/WatchesPage'
+import CreateWatchPage from './pages/CreateWatchPage'
+import WatchDetailPage from './pages/WatchDetailPage'
 import SettingsPage from './pages/SettingsPage'
 import HelpPage from './pages/HelpPage'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -66,6 +68,22 @@ function App() {
         element={
           <ProtectedRoute>
             <WatchesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/watches/new"
+        element={
+          <ProtectedRoute>
+            <CreateWatchPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/watches/:id"
+        element={
+          <ProtectedRoute>
+            <WatchDetailPage />
           </ProtectedRoute>
         }
       />
