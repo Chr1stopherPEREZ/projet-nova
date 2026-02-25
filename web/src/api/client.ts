@@ -18,6 +18,13 @@ interface FetchOptions extends RequestInit {
   skipAuth?: boolean
 }
 
+/**
+ * Appelle l'API Nova avec gestion centralisée.
+ * - Ajoute toujours les cookies (credentials: include)
+ * - Ajoute le header `X-CSRF-Token` pour les méthodes mutables (POST/PUT/PATCH/DELETE)
+ * - Redirige vers `/login` en cas de 401 (sauf si `skipAuth=true`)
+ * - Lève une erreur avec message explicite si la réponse n'est pas OK
+ */
 async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   const { skipAuth = false, ...fetchOptions } = options
 
@@ -38,7 +45,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     ...fetchOptions,
     headers,
-    credentials: 'include', // Toujours envoyer les cookies
+    credentials: 'include', /* Toujours envoyer les cookies */
   })
 
   /* Gestion 401 → redirection login */
@@ -53,6 +60,9 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   }
 
   if (!response.ok) {
+    if (response.status === 500) {
+      throw new Error("Erreur interne du serveur (500). Veuillez contacter l'administrateur ou réessayer plus tard.")
+    }
     const errorData = await response.json().catch(() => ({}))
     throw new Error(errorData.detail || `HTTP Error ${response.status}`)
   }
@@ -61,6 +71,10 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 }
 
 /* CSRF bootstrap : appelle le backend pour obtenir un csrf_token si absent */
+/**
+ * Initialise le cookie CSRF côté navigateur si absent.
+ * À appeler avant une première requête mutante (ex. `login`).
+ */
 async function csrfBootstrap(): Promise<void> {
   const existingToken = getCsrfToken()
   if (!existingToken) {
@@ -76,6 +90,10 @@ async function csrfBootstrap(): Promise<void> {
 }
 
 /* Auth service */
+/**
+ * Service d'authentification Frontend.
+ * Regroupe les appels `login`, `logout` et `checkAuth` en s'appuyant sur `apiFetch`.
+ */
 export const authService = {
   async login(email: string, password: string) {
     /* S'assurer que le CSRF token est présent avant login */
