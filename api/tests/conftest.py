@@ -69,6 +69,26 @@ def registered_user(client, test_user_data):
         "cookies": response.cookies,
     }
 
+
+@pytest.fixture
+def auth_cookies(registered_user):
+    """Retourne les cookies d'authentification et CSRF."""
+    cookies = registered_user["cookies"]
+    return {
+        "access_token": cookies.get("access_token"),
+        "csrf_token": cookies.get("csrf_token")
+    }
+
+
+@pytest.fixture
+def auth_headers(registered_user):
+    """Retourne le header CSRF nécessaire pour les requêtes mutables."""
+    cookies = registered_user["cookies"]
+    return {
+        "X-CSRF-Token": cookies.get("csrf_token")
+    }
+
+
 @pytest.fixture(autouse=True)
 def reset_email_service_after_test():
     """

@@ -25,7 +25,7 @@ class TestRegister:
         client.post("/auth/register", json=test_user_data)
         response = client.post("/auth/register", json=test_user_data)
         assert response.status_code == 400
-        assert "déjà enregistré" in response.json()["detail"]
+        assert "déjà enregistré" in response.json()["error"]["message"]
 
 
 class TestLogin:
@@ -71,7 +71,7 @@ class TestProtectedAccess:
         """Test GET /watches sans cookie => 401 (repro bug)."""
         response = client.get("/watches")
         assert response.status_code == 401
-        assert response.json()["detail"] == "Impossible de valider les identifiants"
+        assert response.json()["error"]["code"] == "NOT_AUTHENTICATED"
 
     def test_protected_without_cookie_returns_401(self, client):
         """Test accès protégé sans cookie => 401."""
@@ -103,7 +103,7 @@ class TestCSRF:
             cookies={"access_token": cookies.get("access_token"), "csrf_token": cookies.get("csrf_token")},
         )
         assert response.status_code == 403
-        assert "CSRF" in response.json()["detail"]
+        assert "CSRF" in response.json()["error"]["code"]
 
     def test_csrf_with_valid_header_returns_204(self, client, registered_user):
         """Test CSRF : POST avec X-CSRF-Token valide => 204."""
@@ -125,7 +125,8 @@ class TestCSRF:
             headers={"X-CSRF-Token": "wrong-token"},
         )
         assert response.status_code == 403
-        assert "mismatch" in response.json()["detail"] or "correspondance" in response.json()["detail"] or "mismatch" in response.json()["detail"]
+        error_msg = response.json()["error"]["message"]
+        assert "mismatch" in error_msg.lower() or "correspondent pas" in error_msg.lower()
 
 
 class TestLogout:

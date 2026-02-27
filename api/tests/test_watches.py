@@ -59,7 +59,7 @@ class TestCreateWatch:
         # Pas de header X-CSRF-Token
         )
         assert response.status_code == 403
-        assert "CSRF" in response.json()["detail"]
+        assert "CSRF" in response.json()["error"]["code"]
 
     def test_create_watch_duplicate_url_returns_400(self, client, registered_user):
         """Test POST /watches avec URL déjà existante => 400."""
@@ -80,7 +80,7 @@ class TestCreateWatch:
             headers={"X-CSRF-Token": csrf_token},
         )
         assert response.status_code == 400
-        assert "already exists" in response.json()["detail"]
+        assert "WATCH_ALREADY_EXISTS" in response.json()["error"]["code"]
 
 
 class TestListWatches:

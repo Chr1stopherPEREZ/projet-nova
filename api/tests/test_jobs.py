@@ -29,7 +29,7 @@ class TestJobsRun:
             # Pas d'en-tête X-CSRF-Token
         )
         assert response.status_code == 403
-        assert "CSRF" in response.json()["detail"]
+        assert "CSRF" in response.json()["error"]["code"]
 
     def test_run_job_on_other_user_watch_returns_404(self, client, db_session):
         """Test POST /jobs/run sur suivi d'un autre utilisateur => 404 (isolation)."""
