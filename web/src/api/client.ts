@@ -64,7 +64,8 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
       throw new Error("Erreur interne du serveur (500). Veuillez contacter l'administrateur ou réessayer plus tard.")
     }
     const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || `HTTP Error ${response.status}`)
+    const errorMessage = errorData.error?.message || errorData.detail || `HTTP Error ${response.status}`
+    throw new Error(errorMessage)
   }
 
   return response.json()

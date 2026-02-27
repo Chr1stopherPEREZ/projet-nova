@@ -22,12 +22,18 @@ def get_current_user(
     if access_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Impossible de valider les identifiants",
+            detail={
+                "code": "NOT_AUTHENTICATED",
+                "message": "Session expirée ou absente",
+            },
         )
 
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Impossible de valider les identifiants",
+        detail={
+            "code": "NOT_AUTHENTICATED",
+            "message": "Session invalide",
+        },
     )
 
     payload = decode_access_token(access_token)
