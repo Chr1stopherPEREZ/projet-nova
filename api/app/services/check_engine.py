@@ -182,6 +182,9 @@ def run_check(
     last_check = get_last_check(db, watch.id)
     previous_state = last_check.stock_state if last_check else None
     
+    error_code = None
+    error_message = None
+
     # 1) Chemin prioritaire Shopify : Toujours LIVE (pas de fixture)
     if is_shopify_url(watch.original_url):
         handle = extract_handle(watch.original_url)
@@ -194,36 +197,59 @@ def run_check(
                 stock_state_str, details = check_shopify_availability(product_json, watch.variant_selector)
                 stock_state = StockState(stock_state_str)
                 http_status = 200
+                if stock_state == StockState.UNKNOWN:
+                    error_code = "PARSER_ERROR"
+                    error_message = details.get("error") if details else "État inconnu détecté (Shopify)"
             else:
                 logger.error(f"Échec de la récupération du JSON Shopify live pour {watch.original_url}")
                 stock_state = StockState.UNKNOWN
                 http_status = 500
-                details = {"error": "Impossible de récupérer le JSON Shopify live", "source": "shopify", "ajax_url": ajax_url}
+                error_code = "NETWORK_ERROR"
+                error_message = "Impossible de récupérer le JSON Shopify live"
+                details = {"error": error_message, "source": "shopify", "ajax_url": ajax_url}
         else:
             logger.error(f"Impossible d'extraire le handle de l'URL Shopify : {watch.original_url}")
             stock_state = StockState.UNKNOWN
             http_status = 400
-            details = {"error": "Handle Shopify non trouvé", "source": "shopify"}
+            error_code = "INVALID_URL"
+            error_message = "Handle Shopify non trouvé"
+            details = {"error": error_message, "source": "shopify"}
     else:
         # 2) Chemin classique (fixtures) pour les autres sites (Nike, etc.)
-        # Charger la fixture
-        content = load_fixture(fixture_name)
-        
-        # Analyser selon le mode (variante ou global)
-        details: dict[str, Any] | None = None
-        
-        if has_variant:
-            # Mode VARIANTE: vérifier la dispo de la variante spécifique
-            stock_state, http_status, details = analyze_variant(
-                content=content,
-                variant_sku=watch.variant_sku,
-                variant_selector=watch.variant_selector,
-                variant_meta=watch.variant_meta,
-                url=watch.original_url,
-            )
-        else:
-            # Mode GLOBAL: comportement historique
-            stock_state, http_status = analyze_fixture(content, fixture_name)
+        try:
+            # Charger la fixture
+            content = load_fixture(fixture_name)
+            
+            # Analyser selon le mode (variante ou global)
+            details: dict[str, Any] | None = None
+            
+            if has_variant:
+                # Mode VARIANTE: vérifier la dispo de la variante spécifique
+                stock_state, http_status, details = analyze_variant(
+                    content=content,
+                    variant_sku=watch.variant_sku,
+                    variant_selector=watch.variant_selector,
+                    variant_meta=watch.variant_meta,
+                    url=watch.original_url,
+                )
+            else:
+                # Mode GLOBAL: comportement historique
+                stock_state, http_status = analyze_fixture(content, fixture_name)
+            
+            if stock_state == StockState.UNKNOWN:
+                error_code = "PARSER_ERROR"
+                error_message = details.get("error") if details else "État inconnu détecté"
+            else:
+                error_code = None
+                error_message = None
+
+        except Exception as e:
+            logger.error(f"Erreur lors de l'exécution du check pour watch_id={watch.id}: {e}")
+            stock_state = StockState.UNKNOWN
+            http_status = 500
+            error_code = "INTERNAL_ERROR"
+            error_message = str(e)
+            details = {"error": error_message, "mode": "error_fallback"}
     
     # Détecter le changement (comparer stock_state)
     changed = False
@@ -249,6 +275,8 @@ def run_check(
         http_status=http_status,
         fetch_mode=fetch_mode,
         duration_ms=0,
+        error_code=error_code,
+        error_message=error_message,
         details=details,  # Détails de la variante si disponibles
     )
     

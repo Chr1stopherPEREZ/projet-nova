@@ -720,10 +720,13 @@ def check_variant_availability(
         requested_size = str(variant_meta["size"])
         # Utiliser l'URL de variant_meta ou l'URL de base si possible
         product_url = variant_meta.get("url") or ""
+        
+        logger.info(f"[NIKE_PARSER] Variante {variant_sku} non trouvée dans NEXT_DATA. Tentative de fallback HTML pour la taille {requested_size}.")
+        
         html_variants = extract_nike_variants_from_html(html, product_url)
         
-        # LOG DEBUG VIA logger au lieu de print/open
-        logger.info(f"HTML fallback DEBUG: requested_size={requested_size}, variants found={len(html_variants)}")
+        # LOG DEBUG VIA logger
+        logger.info(f"HTML fallback: {len(html_variants)} tailles extraites du HTML.")
         for v in html_variants:
             logger.debug(f"HTML variant found: {v.size} (available: {v.available})")
             if v.size == requested_size:
