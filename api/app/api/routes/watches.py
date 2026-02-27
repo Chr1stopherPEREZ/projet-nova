@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.csrf import verify_csrf
+from app.core.exceptions import raise_api_error
 from app.models.user import User
 from app.models.watch import Watch, WatchStatus, StockState
 from app.schemas.watch import WatchCreate, WatchOut, WatchUpdate, PreviewRequest, PreviewResponse, WatchCheckOut
@@ -56,9 +57,10 @@ def create_watch(
         Watch.variant_sku == watch_data.variant_sku,  # None == None permet les watches globales uniques
     ).first()
     if existing:
-        raise HTTPException(
+        raise_api_error(
+            code="WATCH_ALREADY_EXISTS",
+            message="Un suivi existe déjà pour cette URL et cette variante",
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Un suivi existe déjà pour cette URL et cette variante",
         )
 
     # Crée la watch
@@ -133,7 +135,11 @@ def get_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suivi non trouvé",
+            detail={
+                "code": "WATCH_NOT_FOUND",
+                "message": "Suivi introuvable",
+                "details": {"watch_id": str(watch_id)}
+            },
         )
     return WatchOut(
         id=watch.id,
@@ -167,7 +173,11 @@ def update_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suivi non trouvé",
+            detail={
+                "code": "WATCH_NOT_FOUND",
+                "message": "Suivi introuvable",
+                "details": {"watch_id": str(watch_id)}
+            },
         )
 
     if watch_data.status:
@@ -215,7 +225,11 @@ def delete_watch(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suivi non trouvé",
+            detail={
+                "code": "WATCH_NOT_FOUND",
+                "message": "Suivi introuvable",
+                "details": {"watch_id": str(watch_id)}
+            },
         )
 
     db.delete(watch)
@@ -242,7 +256,11 @@ def get_watch_checks(
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suivi non trouvé",
+            detail={
+                "code": "WATCH_NOT_FOUND",
+                "message": "Suivi introuvable",
+                "details": {"watch_id": str(watch_id)}
+            },
         )
     
     checks = db.query(WatchCheck).filter(
@@ -291,9 +309,10 @@ async def preview_product(
         
         return preview
     except Exception as e:
-        raise HTTPException(
+        raise_api_error(
+            code="PREVIEW_FAILED",
+            message=f"Impossible d'analyser l'URL: {str(e)}",
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Impossible d'analyser l'URL: {str(e)}",
         )
 
 

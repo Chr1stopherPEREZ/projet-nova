@@ -60,7 +60,11 @@ def run_job(
         if not watch:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-            detail="Suivi non trouvé",
+                detail={
+                    "code": "WATCH_NOT_FOUND",
+                    "message": "Suivi introuvable",
+                    "details": {"watch_id": str(request.watch_id)}
+                },
             )
         watches = [watch]
         logger.info(f"Mode single watch: watch_id={request.watch_id}")

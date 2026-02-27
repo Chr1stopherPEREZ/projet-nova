@@ -5,6 +5,7 @@ Spec: docs/07-api-spec.md
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import hash_password, verify_password, create_access_token, generate_csrf_token
 from app.models.user import User
@@ -48,7 +49,7 @@ def register(user_data: UserCreate, response: Response, db: Session = Depends(ge
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,  # True en production avec HTTPS
+        secure=settings.use_cookie_secure,
         samesite="lax",
         path="/",
         max_age=60 * 60 * 24,  # 24 heures
@@ -57,7 +58,7 @@ def register(user_data: UserCreate, response: Response, db: Session = Depends(ge
         key="csrf_token",
         value=generate_csrf_token(),
         httponly=False,  # Accessible au JS (Mécanisme Double Submit Cookie)
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
         path="/",
         max_age=60 * 60 * 24,
@@ -90,7 +91,7 @@ def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db
         key="access_token",
         value=access_token,
         httponly=True,
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
         path="/",
         max_age=60 * 60 * 24,
@@ -99,7 +100,7 @@ def login(user_data: UserLogin, response: Response, db: Session = Depends(get_db
         key="csrf_token",
         value=generate_csrf_token(),
         httponly=False,
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
         path="/",
         max_age=60 * 60 * 24,
@@ -121,13 +122,13 @@ def logout(
     response.delete_cookie(
         key="access_token",
         path="/",
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
     )
     response.delete_cookie(
         key="csrf_token",
         path="/",
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
     )
     return None
@@ -152,7 +153,7 @@ def csrf_bootstrap(response: Response):
         key="csrf_token",
         value=generate_csrf_token(),
         httponly=False,
-        secure=False,
+        secure=settings.use_cookie_secure,
         samesite="lax",
         path="/",
         max_age=60 * 60 * 24,
