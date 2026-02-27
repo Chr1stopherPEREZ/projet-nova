@@ -36,8 +36,17 @@ logs/
 .DS_Store
 Thumbs.db
 
+# Web
+node_modules/
+.next/
+out/
+build/
+
 # Docker
 docker-compose.override.yml
 
 # Fichiers temporaires
-cookies.txt
+cookies*.txt
+test_*.sh
+.env.*
+!.env.example

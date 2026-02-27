@@ -13,15 +13,17 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     environment:
-      - APP_ENV=development
-      - DATABASE_URL=postgresql://nova:nova@db:5432/nova
-      - CHECK_MODE=fixture
-      - FIXTURE_NAME=in_stock.html
-      - SMTP_HOST=mailhog
-      - SMTP_PORT=1025
+      - APP_ENV=${APP_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://nova:nova@db:5432/nova}
+      - CHECK_MODE=${CHECK_MODE:-fixture}
+      - FIXTURE_NAME=${FIXTURE_NAME:-in_stock.html}
+      - SMTP_HOST=${SMTP_HOST:-mailhog}
+      - SMTP_PORT=${SMTP_PORT:-1025}
     depends_on:
       - db
       - mailhog
@@ -29,10 +31,12 @@ services:
 
   db:
     image: postgres:16-alpine
+    env_file:
+      - .env
     environment:
-      - POSTGRES_USER=nova
-      - POSTGRES_PASSWORD=nova
-      - POSTGRES_DB=nova
+      - POSTGRES_USER=${POSTGRES_USER:-nova}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nova}
+      - POSTGRES_DB=${POSTGRES_DB:-nova}
     # Port non exposé (accès interne Docker uniquement, évite les conflits locaux)
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -49,12 +53,14 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
+    env_file:
+      - .env
     command: ["python", "-m", "app.worker"]
     environment:
-      - APP_ENV=development
-      - DATABASE_URL=postgresql://nova:nova@db:5432/nova
-      - CHECK_MODE=fixture
-      - FIXTURE_NAME=in_stock.html
+      - APP_ENV=${APP_ENV:-development}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://nova:nova@db:5432/nova}
+      - CHECK_MODE=${CHECK_MODE:-fixture}
+      - FIXTURE_NAME=${FIXTURE_NAME:-in_stock.html}
     depends_on:
       - db
       - api  # L'API exécute migrations/seed au démarrage (start.sh), le worker en dépend
