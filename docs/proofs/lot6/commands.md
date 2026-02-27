@@ -11,12 +11,12 @@ Livrer un frontend fonctionnel avec :
 
 | Exigence | Preuve | Fichier/Capture |
 |----------|--------|-----------------|
-| Écran login fonctionnel | Capture écran login | `../../docs/proofs/s3-01-lot6-login-page.png` |
-| Routing pages principales | Dashboard accessible après login | `../../docs/proofs/s3-04-lot6-dashboard.png` |
-| Guard / redirection si non loggué | Accès `/dashboard` → redirect `/login` | `../../docs/proofs/s3-06-lot6-redirect.png` |
-| Login réussi + cookie JWT | Cookie `access_token` visible après login | `../../docs/proofs/s3-05-lot6-cookies.png` |
-| CSRF bootstrap au démarrage | GET `/_csrf-bootstrap` au start de l'app | `../../docs/proofs/s3-02-lot6-network-csrf.png` |
-| Header X-CSRF-Token sur requête POST | Visible dans Network tab (via requête de login) | `../../docs/proofs/s3-03-lot6-network-login.png` |
+| Écran login fonctionnel | Capture écran login | `./screens/s3-01-lot6-login-page.png` |
+| Routing pages principales | Dashboard accessible après login | `./screens/s3-04-lot6-dashboard.png` |
+| Guard / redirection si non loggué | Accès `/dashboard` → redirect `/login` | `./screens/s3-06-lot6-redirect.png` |
+| Login réussi + cookie JWT | Cookie `access_token` visible après login | `./screens/s3-05-lot6-cookies.png` |
+| CSRF bootstrap au démarrage | GET `/_csrf-bootstrap` au start de l'app | `./screens/s3-02-lot6-network-csrf.png` |
+| Header X-CSRF-Token sur requête POST | Visible dans Network tab (via requête de login) | `./screens/s3-03-lot6-network-login.png` |
 | Build frontend OK | `pnpm build` sans erreur | Voir section "Commandes" |
 
 ## Commandes de preuve
@@ -170,12 +170,12 @@ if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
 
 ## Captures à prendre
 
-1. **`../../docs/proofs/s3-01-lot6-login-page.png`** — Page de login
-2. **`../../docs/proofs/s3-05-lot6-cookies.png`** — Cookies après login
-3. **`../../docs/proofs/s3-02-lot6-network-csrf.png`** — Network: GET `/_csrf-bootstrap`
-4. **`../../docs/proofs/s3-03-lot6-network-login.png`** — Network: requête de login (headers visibles)
-5. **`../../docs/proofs/s3-06-lot6-redirect.png`** — `/dashboard` redirigé vers `/login`
-6. **`../../docs/proofs/s3-04-lot6-dashboard.png`** — Dashboard après login
+1. **`./screens/s3-01-lot6-login-page.png`** — Page de login
+2. **`./screens/s3-05-lot6-cookies.png`** — Cookies après login
+3. **`./screens/s3-02-lot6-network-csrf.png`** — Network: GET `/_csrf-bootstrap`
+4. **`./screens/s3-03-lot6-network-login.png`** — Network: requête de login (headers visibles)
+5. **`./screens/s3-06-lot6-redirect.png`** — `/dashboard` redirigé vers `/login`
+6. **`./screens/s3-04-lot6-dashboard.png`** — Dashboard après login
 
 ## Statut
 

@@ -7,18 +7,28 @@ Nova est une application web conçue pour surveiller la disponibilité de produi
 **Prérequis** : Docker Desktop (ou Docker Engine + Docker Compose v2 avec plugin buildx)
 
 ```bash
-docker compose up --build
+cp .env.example .env && cp web/.env.example web/.env && docker compose up --build
 ```
 
 C'est tout ! Les migrations et le seed user sont appliqués automatiquement au démarrage.
+
+### Configuration
+Le projet utilise des variables d'environnement pour la configuration :
+- **Backend (`.env`)** : Contient les secrets (JWT), la config DB et SMTP. Ce fichier est utilisé par Docker Compose pour injecter les variables dans les conteneurs.
+- **Frontend (`web/.env`)** : Contient `VITE_API_URL` qui doit pointer vers l'API (défaut: `http://localhost:8000`).
+
+En mode **production** (`APP_ENV=production`), l'API refuse de démarrer si `JWT_SECRET_KEY` n'est pas modifié.
 
 ### Accès
 
 | Service | URL |
 |---------|-----|
+| **Web UI** | http://localhost:3000 |
 | **Swagger API** | http://localhost:8000/docs |
 | **Health check** | http://localhost:8000/health |
 | **Mailhog** | http://localhost:8025 |
+
+Pour la démo jury, utiliser l’UI Docker (:3000). Pour dev front en live, utiliser `pnpm dev` (:5173).
 
 ### Utilisateur de démonstration
 
@@ -32,7 +42,7 @@ C'est tout ! Les migrations et le seed user sont appliqués automatiquement au d
 ## Objectifs du projet
 Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité.
 
-**État actuel (Lot 7) :**
+**État actuel (Lot 8) :**
 
 | Lot | Description | Statut |
 |-----|-------------|--------|
@@ -43,7 +53,7 @@ Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de
 | **Lot 5** | Orchestration + notification email (Mailhog) | ✅ Clos |
 | **Lot 6** | Frontend skeleton + Auth + CSRF bootstrap | ✅ Clos |
 | **Lot 7** | Watches UI + Run check | ✅ Clos |
-| **Lot 8** | Robustesse API + UX | ⏳ À venir |
+| **Lot 8** | Robustesse API + UX | ✅ Clos |
 | **Lot 9** | Pack tests + intégration | ⏳ À venir |
 | **Lot 10** | Docs jury + release | ⏳ À venir |
 
@@ -103,7 +113,7 @@ projet-nova/
 │       └── pages/       # Pages de l'application
 ├── worker/              # Documentation du worker (voir worker/README.md)
 ├── docs/                # Documentation technique complète
-├── evidence/            # Preuves par lot (captures, commandes)
+│   └── proofs/          # Preuves par lot (captures, commandes)
 └── docker-compose.yml   # Orchestration des services
 ```
 
@@ -113,7 +123,7 @@ projet-nova/
 - **Backend** : Python 3.12+, FastAPI
 - **Base de données** : PostgreSQL
 - **Worker / Scraping** : APScheduler, HTTPX, Playwright
-- **Frontend** : Dashboard minimaliste (3-4 écrans clés). La stack technique est flexible (React/Tailwind ou HTML/CSS/JS natif) et sera validée à l'issue de la phase de prototypage Figma.
+- **Frontend** : Dashboard minimaliste (3-4 écrans clés). Stack : React / Tailwind.
 - **Déploiement** : Docker & Docker Compose
 
 ## 🎬 Démonstration
@@ -132,7 +142,7 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
 Voir la section "Fallback : BACK uniquement" dans [`docs/26-demo-plan.md`](./docs/26-demo-plan.md#fallback--back-uniquement-si-le-front-bug).
 
-### Démarrage local — Lot 5 (actuel)
+### Démarrage local
 
 ```bash
 # Lancer tous les services (migrations appliquées automatiquement via start.sh)
@@ -252,7 +262,7 @@ curl -X POST http://localhost:8000/jobs/run \
 - Premier check = pas d'email (pas de référence pour comparer)
 - Email visible sur http://localhost:8025
 
-Pour plus de détails : [`evidence/lot5/commands.md`](./evidence/lot5/commands.md)
+Pour plus de détails : [`docs/proofs/lot5/commands.md`](./docs/proofs/lot5/commands.md)
 
 ### Worker (Lot 4)
 
@@ -307,6 +317,11 @@ cd web && pnpm install && pnpm dev
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
 
 ---
+
+## 📂 Preuves et Validation (Lot par Lot)
+
+Toutes les preuves de fonctionnement (captures d'écran et commandes curl réelles) sont centralisées dans le dossier :
+👉 **[`docs/proofs/`](./docs/proofs/)**
 
 ## 📖 Guide de démarrage (Plan 4 semaines)
 1. **Semaine 1 : Setup & Fondations** - Initialiser l'environnement Docker, implémenter le modèle de données (`18-mpd.md`), développer l'authentification (register/login/JWT) et les endpoints de base (`07-api-spec.md`). En parallèle : finalisation de la **charte graphique** et des **wireframes** (Figma).

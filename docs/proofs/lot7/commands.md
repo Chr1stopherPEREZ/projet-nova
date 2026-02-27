@@ -13,14 +13,14 @@ Livrer les écrans de gestion des suivis (watches) avec actions fonctionnelles :
 
 | Exigence | Preuve | Fichier/Capture |
 |----------|--------|-----------------|
-| Liste des watches | Page `/watches` avec liste | `../../docs/proofs/s3-11-lot7-watches-list.png` |
-| Empty state (0 watch) | Message "Aucun suivi" | `../../docs/proofs/s3-08-lot7-watches-empty.png` |
-| Créer un watch | Form `/watches/new` | `../../docs/proofs/s3-09-lot7-create-watch-filled.png` |
-| Preview Shopify | Preview des variantes | `../../docs/proofs/s3-10-lot7-preview-shopify-variant.png` |
-| Détail watch + historique | Page `/watches/:id` | `../../docs/proofs/s3-12-lot7-watch-detail.png` |
-| Bouton Run check | Appel `POST /jobs/run` + refresh | `../../docs/proofs/s3-13-lot7-run-check-success.png` |
-| Historique / Rupture | État rupture détecté | `../../docs/proofs/s3-14-lot7-run-check-history.png` |
-| Supprimer un watch | `DELETE /watches/:id` + confirmation | `../../docs/proofs/s3-15-lot7-delete-success.png` |
+| Liste des watches | Page `/watches` avec liste | [`./screens/s3-11-lot7-watches-list.png`](./screens/s3-11-lot7-watches-list.png) |
+| Empty state (0 watch) | Message "Aucun suivi" | [`./screens/s3-08-lot7-watches-empty.png`](./screens/s3-08-lot7-watches-empty.png) |
+| Créer un watch | Form `/watches/new` | [`./screens/s3-09-lot7-create-watch-filled.png`](./screens/s3-09-lot7-create-watch-filled.png) |
+| Preview Shopify | Preview des variantes | [`./screens/s3-10-lot7-preview-shopify-variant.png`](./screens/s3-10-lot7-preview-shopify-variant.png) |
+| Détail watch + historique | Page `/watches/:id` | [`./screens/s3-12-lot7-watch-detail.png`](./screens/s3-12-lot7-watch-detail.png) |
+| Bouton Run check | Appel `POST /jobs/run` + refresh | [`./screens/s3-13-lot7-run-check-success.png`](./screens/s3-13-lot7-run-check-success.png) |
+| Historique / Rupture | État rupture détecté | [`./screens/s3-14-lot7-run-check-history.png`](./screens/s3-14-lot7-run-check-history.png) |
+| Supprimer un watch | `DELETE /watches/:id` + confirmation | [`./screens/s3-15-lot7-delete-success.png`](./screens/s3-15-lot7-delete-success.png) |
 
 ## Commandes de preuve
 
@@ -207,14 +207,13 @@ const handleDelete = async () => {
 ```
 
 ## Captures à prendre
-
-1. **`../../docs/proofs/s3-09-lot7-create-watch-filled.png`** — Création du suivi
-2. **`../../docs/proofs/s3-10-lot7-preview-shopify-variant.png`** — Preview des variantes Shopify
-3. **`../../docs/proofs/s3-11-lot7-watches-list.png`** — Liste des suivis
-4. **`../../docs/proofs/s3-12-lot7-watch-detail.png`** — Détail du suivi
-5. **`../../docs/proofs/s3-13-lot7-run-check-success.png`** — Run check (succès)
-6. **`../../docs/proofs/s3-14-lot7-run-check-history.png`** — Historique avec nouvel enregistrement
-7. **`../../docs/proofs/s3-15-lot7-delete-success.png`** — Suppression du suivi
+1. **[`./screens/s3-09-lot7-create-watch-filled.png`](./screens/s3-09-lot7-create-watch-filled.png)** — Création du suivi
+2. **[`./screens/s3-10-lot7-preview-shopify-variant.png`](./screens/s3-10-lot7-preview-shopify-variant.png)** — Preview des variantes Shopify
+3. **[`./screens/s3-11-lot7-watches-list.png`](./screens/s3-11-lot7-watches-list.png)** — Liste des suivis
+4. **[`./screens/s3-12-lot7-watch-detail.png`](./screens/s3-12-lot7-watch-detail.png)** — Détail du suivi
+5. **[`./screens/s3-13-lot7-run-check-success.png`](./screens/s3-13-lot7-run-check-success.png)** — Run check (succès)
+6. **[`./screens/s3-14-lot7-run-check-history.png`](./screens/s3-14-lot7-run-check-history.png)** — Historique avec nouvel enregistrement
+7. **[`./screens/s3-15-lot7-delete-success.png`](./screens/s3-15-lot7-delete-success.png)** — Suppression du suivi
 
 <!-- Notes
 Mise à jour des liens vers les preuves : les captures du Lot 7 sont centralisées et renommées dans docs/proofs/ avec le préfixe s3-XX-lot7-… (alignement Semaine 3).
