@@ -1,3 +1,15 @@
+"""
+Parser Shopify de Nova
+
+Ce module gère les produits Shopify ou compatibles. Il permet de détecter
+une URL Shopify, d’extraire le handle produit, d’interroger l’endpoint JSON
+natif de Shopify, puis de normaliser les variantes pour le preview et la
+vérification de stock.
+
+Il est utilisé par le moteur de check de Nova pour déterminer si un produit,
+ou une variante précise, est disponible.
+"""
+
 import json
 import logging
 import re
