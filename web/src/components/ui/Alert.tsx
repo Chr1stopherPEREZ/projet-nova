@@ -16,10 +16,10 @@ const icons: Record<AlertVariant, typeof AlertCircle> = {
 }
 
 const variants: Record<AlertVariant, string> = {
-  success: 'bg-success-50 border-success-500 text-success-700',
-  warning: 'bg-warning-50 border-warning-500 text-warning-700',
-  danger: 'bg-danger-50 border-danger-500 text-danger-700',
-  info: 'bg-info-50 border-info-500 text-info-700',
+  success: 'bg-success-bg border-success-text/20 text-success-text',
+  warning: 'bg-warning-bg border-warning-text/20 text-warning-text',
+  danger: 'bg-danger-bg border-danger-text/20 text-danger-text',
+  info: 'bg-info-bg border-info-text/20 text-info-text',
 }
 
 export default function Alert({ variant = 'info', children, className = '', ...props }: AlertProps) {

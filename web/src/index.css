@@ -3,5 +3,6 @@
 @tailwind utilities;
 
 body {
-  @apply bg-gray-50 text-gray-900 antialiased;
+  @apply bg-background-app text-text-primary antialiased;
+  font-feature-settings: "ss01", "ss02", "cv01", "cv02";
 }

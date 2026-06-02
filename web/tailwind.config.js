@@ -7,55 +7,66 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Lexend', 'system-ui', 'sans-serif'],
+        sans: ['Geist', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Primary - Blue Spruce (teal)
+        /* Core Palette */
         primary: {
-          50: '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0F766E', // Blue Spruce - main
-          700: '#0B5F59', // Stormy Teal - hover
-          800: '#115e59',
-          900: '#134e4a',
-        },
-        // Semantic colors
-        success: {
-          50: '#ecfdf5',
-          100: '#d1fae5',
-          500: '#16A16A', // Shamrock
-          600: '#059669',
-          700: '#047857',
-        },
-        warning: {
-          50: '#fffbeb',
-          100: '#fef3c7',
-          500: '#F59F59', // Sandy Brown
-          600: '#d97706',
-          700: '#b45309',
-        },
-        danger: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          500: '#DC2626', // Primary Scarlet
-          600: '#dc2626',
-          700: '#b91c1c',
-        },
-        info: {
           50: '#eff6ff',
           100: '#dbeafe',
-          500: '#0F3675', // Regal Navy
-          600: '#2563eb',
-          700: '#1d4ed8',
+          200: '#bfdbfe',
+          300: '#93c5fd',
+          400: '#60a5fa',
+          500: '#2563EB', /* Royal Blue - Brand Primary */
+          600: '#2563EB', /* Royal Blue */
+          700: '#1D4ED8', /* Royal Azur - Brand Primary Hover */
+          800: '#1e40af',
+          900: '#1e3a8a',
         },
-        // UI colors
-        background: '#FAFAFA', // Bright Snow
-        border: '#E5E7EB', // Platinum
-        text: '#111111', // Onyx
+        background: {
+          app: '#F8FAFC',    /* Bright Snow */
+          card: '#FFFFFF',   /* White */
+          sidebar: '#F9FAFB', /* Catskill White */
+        },
+        border: {
+          default: '#E5E7EB', /* Platinium */
+          subtle: '#CBD5E1',  /* Pale Slate */
+        },
+        text: {
+          primary: '#0F172A',   /* Prussian Blue */
+          secondary: '#64748B', /* Slate Grey */
+          muted: '#94A3B8',     /* Cool Steel */
+          light: '#F8FAFC',     /* Bright Snow (Pour Bg Noir) */
+        },
+        /* Semantic Palette */
+        success: {
+          text: '#16A34A',      /* Medium Jungle */
+          bg: '#DCFCE7',        /* Frosted Mint */
+        },
+        danger: {
+          text: '#DC2626',      /* Primary Scarlet */
+          bg: '#FEE2E2',        /* Soft Blush */
+          hover: '#B91C1C',     /* Darker Scarlet */
+        },
+        warning: {
+          text: '#F59E0B',      /* Golden Orange */
+          bg: '#FEF3C7',        /* Lemon Chiffon */
+        },
+        neutral: {
+          text: '#64748B',      /* Slate Grey */
+          bg: '#F1F5F9',        /* Alice Blue */
+        },
+        info: {
+          text: '#2563EB',      /* Royal Blue */
+          bg: '#DBEAFE',        /* Light Grayish */
+        },
+        /* Auth Dark Theme */
+        auth: {
+          bg: '#0F172A',           /* Prussian Blue */
+          bgSecondary: '#111827',  /* Ink Black */
+          grid: '#1E293B',         /* Deep Space Blue */
+          border: '#334155',       /* Charcoal Blue */
+        }
       },
     },
   },
