@@ -5,6 +5,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, String, Integer, DateTime, ForeignKey, Index, Uuid, JSON
+from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -27,7 +28,7 @@ class WatchCheck(Base):
     duration_ms = Column(Integer, nullable=True)
     error_code = Column(String, nullable=True)
     error_message = Column(String, nullable=True)
-    details = Column(JSON, nullable=True)  # Détails du check: {variant_sku, couleur, taille, tailles_disponibles, etc.}
+    details = Column(JSON().with_variant(postgresql.JSONB, "postgresql"), nullable=True)  # Détails du check: {variant_sku, couleur, taille, tailles_disponibles, etc.}
 
     # Relations
     watch = relationship("Watch", back_populates="checks")

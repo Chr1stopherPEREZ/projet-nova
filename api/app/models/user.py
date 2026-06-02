@@ -28,6 +28,7 @@ class User(Base):
     role = Column(Enum(UserRole), nullable=False, default=UserRole.USER)
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    last_notifications_read_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relations
     watches = relationship("Watch", back_populates="user", cascade="all, delete-orphan")
