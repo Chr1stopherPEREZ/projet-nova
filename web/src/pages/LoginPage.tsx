@@ -1,14 +1,21 @@
-import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, FormEvent, useEffect } from 'react'
+import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { authService } from '../api/client'
 import { Button, Input, Alert } from '../components/ui'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(location.state?.success || null)
   const [isLoading, setIsLoading] = useState(false)
+
+  /* Effacer le message de succès s'il y a une erreur */
+  useEffect(() => {
+    if (error) setSuccess(null)
+  }, [error])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -16,8 +23,12 @@ function LoginPage() {
     setIsLoading(true)
 
     try {
-      await authService.login(email, password)
-      navigate('/dashboard')
+      const user = await authService.login(email, password)
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (err) {
       if (err instanceof Error) {
         if (err.message.includes('Invalid') || err.message.includes('401')) {
@@ -53,9 +64,12 @@ function LoginPage() {
 
         {/* Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Error message */}
+          {/* Messages */}
           {error && (
             <Alert variant="danger">{error}</Alert>
+          )}
+          {success && (
+            <Alert variant="success">{success}</Alert>
           )}
 
           <div className="space-y-4">
@@ -91,6 +105,15 @@ function LoginPage() {
           >
             Se connecter
           </Button>
+          
+          <div className="text-center mt-4">
+            <p className="text-sm text-gray-600">
+              Pas encore de compte ?{' '}
+              <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
+                S'inscrire gratuitement
+              </Link>
+            </p>
+          </div>
         </form>
 
       </div>

@@ -38,7 +38,7 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(method)) {
     const csrfToken = getCsrfToken()
     if (csrfToken) {
-      ;(headers as Record<string, string>)['X-CSRF-Token'] = csrfToken
+      (headers as Record<string, string>)['X-CSRF-Token'] = csrfToken
     }
   }
 
@@ -50,7 +50,11 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
 
   /* Gestion 401 → redirection login */
   if (response.status === 401 && !skipAuth) {
-    window.location.href = '/login'
+    /* Éviter redirection si déjà sur une page publique */
+    const isPublicPage = ['/login', '/register', '/login/', '/register/'].includes(window.location.pathname)
+    if (!isPublicPage) {
+      window.location.href = '/login'
+    }
     throw new Error('Unauthorized')
   }
 
@@ -90,36 +94,86 @@ async function csrfBootstrap(): Promise<void> {
   }
 }
 
+export interface User {
+  id: number | string
+  email: string
+  role: string
+}
+
+let userCache: User | null = null
+let userCacheExpiry = 0
+const CACHE_DURATION = 1000 * 60 * 5 // 5 minutes
+
 /* Auth service */
 /**
  * Service d'authentification Frontend.
  * Regroupe les appels `login`, `logout` et `checkAuth` en s'appuyant sur `apiFetch`.
  */
 export const authService = {
-  async login(email: string, password: string) {
+  async login(email: string, password: string): Promise<User> {
     /* S'assurer que le CSRF token est présent avant login */
     await csrfBootstrap()
-    return apiFetch<{ id: number; email: string; role: string }>('/auth/login', {
+    const user = await apiFetch<User>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
       skipAuth: true,
     })
+    userCache = user
+    userCacheExpiry = Date.now() + CACHE_DURATION
+    return user
   },
 
-  async logout() {
+  async register(email: string, password: string): Promise<User> {
+    /* S'assurer que le CSRF token est présent avant register */
+    await csrfBootstrap()
+    const user = await apiFetch<User>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+      skipAuth: true,
+    })
+    userCache = user
+    userCacheExpiry = Date.now() + CACHE_DURATION
+    return user
+  },
+
+  async logout(): Promise<void> {
+    userCache = null
+    userCacheExpiry = 0
     return apiFetch<void>('/auth/logout', {
       method: 'POST',
     })
   },
 
-  async checkAuth(): Promise<boolean> {
+  async checkAuth(): Promise<User | null> {
+    if (userCache && Date.now() < userCacheExpiry) {
+      return userCache
+    }
+
     try {
       /* Utilise /auth/me dédié pour vérifier l'authentification */
-      await apiFetch<{ id: number; email: string; role: string }>('/auth/me', { skipAuth: true })
-      return true
+      const user = await apiFetch<User>('/auth/me', { skipAuth: true })
+      userCache = user
+      userCacheExpiry = Date.now() + CACHE_DURATION
+      return user
     } catch {
-      return false
+      userCache = null
+      userCacheExpiry = 0
+      return null
     }
+  },
+
+  async getStats(): Promise<any> {
+    return apiFetch<any>('/stats/dashboard')
+  },
+
+  async getAdminStats(): Promise<any> {
+    return apiFetch<any>('/admin/stats/dashboard')
+  },
+  
+  async markNotificationsAsRead(): Promise<void> {
+    return apiFetch<void>('/stats/notifications/mark-as-read', {
+      method: 'POST',
+    })
   },
 }
 

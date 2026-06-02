@@ -1,12 +1,20 @@
 import { useEffect, useState, useRef } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import WatchesPage from './pages/WatchesPage'
 import CreateWatchPage from './pages/CreateWatchPage'
 import WatchDetailPage from './pages/WatchDetailPage'
 import SettingsPage from './pages/SettingsPage'
 import HelpPage from './pages/HelpPage'
+import AdminDashboardPage from './pages/AdminDashboardPage'
+import AdminWatchesPage from './pages/AdminWatchesPage'
+import AdminTestProfilePage from './pages/AdminTestProfilePage'
+import AdminSiteProfilesPage from './pages/AdminSiteProfilesPage'
+import NotificationsPage from './pages/NotificationsPage'
+import PrivacyPage from './pages/PrivacyPage'
+import TermsPage from './pages/TermsPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { csrfBootstrap } from './api/client'
 
@@ -55,11 +63,68 @@ function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
         path="/dashboard"
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/watches"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminWatchesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/test-profile"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminTestProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/site-profiles"
+        element={
+          <ProtectedRoute adminOnly>
+            <AdminSiteProfilesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/privacy"
+        element={
+          <ProtectedRoute>
+            <PrivacyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <ProtectedRoute>
+            <TermsPage />
           </ProtectedRoute>
         }
       />
