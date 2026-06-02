@@ -40,14 +40,16 @@ Response 200
 ### POST `/auth/logout`
 Response 204
 
-### POST `/auth/forgot-password`
+### POST `/auth/forgot-password` (V2)
+*Note : La réinitialisation de mot de passe est prévue pour la V2.*
 Request
 ```json
 {"email":"user@example.com"}
 ```
 Response 202
 
-### POST `/auth/reset-password`
+### POST `/auth/reset-password` (V2)
+*Note : La réinitialisation de mot de passe est prévue pour la V2.*
 Request
 ```json
 {"token":"...","new_password":"..."}
@@ -87,7 +89,8 @@ Response 200 (paginated)
 }
 ```
 
-### GET `/watches/{id}/notifications`
+### GET `/watches/{id}/notifications` (V2 / Roadmap)
+*Note : Cet endpoint est prévu pour la V2 et n'est pas encore implémenté.*
 Response 200 (paginated)
 ```json
 {
@@ -96,7 +99,9 @@ Response 200 (paginated)
 }
 ```
 
-## Admin — site profiles
+## Admin — site profiles (V2 / Roadmap)
+*Note : La gestion dynamique des profils via l'API est prévue pour la V2. Actuellement, les profils sont gérés statiquement via le seed.*
+
 ### GET `/admin/site-profiles`
 ### POST `/admin/site-profiles`
 ### PATCH `/admin/site-profiles/{id}`
@@ -120,14 +125,66 @@ Response 200
 }
 ```
 
-## Admin — métriques
-### GET `/admin/metrics`
-Response 200
+## Statistiques (LOT 10)
+
+### GET `/stats/dashboard`
+Retourne les KPIs et le tableau de performance pour l'utilisateur connecté.
+**Response 200**
 ```json
-{"active_watches":12,"notifications_sent_24h":3,"broken_watches":1}
+{
+  "kpis": {
+    "active_watches": 5,
+    "checks_today": 120,
+    "changes_7d": 3,
+    "last_check_at": "...",
+    "errors_7d": 1,
+    "alerts_sent_7d": 3,
+    "unread_notifications_count": 0
+  },
+  "table": [
+    {"host": "nike.com", "checks": 50, "changes": 1, "alerts_sent": 1}
+  ]
+}
 ```
 
-## Ops/Jobs (hors V1)
+### POST `/stats/notifications/mark-as-read`
+Marque toutes les notifications comme lues.
+**Response 204**
+
+### GET `/admin/stats/dashboard` (ADMIN)
+Retourne les KPIs globaux et le top des domaines.
+**Response 200**
+```json
+{
+  "kpis": {
+    "active_watches": 150,
+    "checks_today": 2400,
+    "alerts_sent_7d": 45,
+    "errors_7d": 12,
+    "last_check_at": "..."
+  },
+  "top_domains": [
+    {"host": "nike.com", "checks": 1200, "changes": 20, "alerts_sent": 20}
+  ]
+}
+```
+
+### GET `/admin/stats/site-profiles` (ADMIN)
+Liste les profils de site configurés en base (consultation uniquement).
+**Response 200**
+```json
+[
+  {
+    "id": "uuid",
+    "name": "Nike.com",
+    "domain_pattern": "nike.com",
+    "is_active": true,
+    "fetch_mode": "HTTP"
+  }
+]
+```
+
+## Ops/Jobs (LOT 10)
 ### POST `/jobs/run`
 Déclenche un cycle de vérification manuel ou via un orchestrateur externe (ex: n8n).
 *Note : Cet endpoint est documenté à titre d'exemple d'intégration et n'est pas inclus dans le périmètre fonctionnel de la V1.*

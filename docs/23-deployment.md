@@ -17,13 +17,15 @@ Services :
 - `APP_BASE_URL` (liens reset password)
 
 ## Stratégie CI/CD et DevOps (GitHub Actions)
-L'application prévoit d'intégrer une chaîne de déploiement continu (CI/CD) pour automatiser la qualité et sécuriser les mises en production futures.
+L'application dispose d'une chaîne d'intégration continue (CI) automatisée via GitHub Actions (Source : `.github/workflows/ci.yml`).
 
 ### Pipeline d'Intégration Continue (CI)
 Déclenché à chaque `push` ou `pull_request` sur la branche `main` :
-1.  **Linting** : Vérification de la conformité du code avec `Ruff`.
-2.  **Tests Unitaires & Intégration** : Exécution de la suite `pytest` dans un environnement Dockerisé.
-3.  **Build Image** : Création de l'image Docker pour vérifier que le `Dockerfile` est valide.
+1.  **Linting (Backend)** : Vérification de la conformité du code avec `Ruff`.
+2.  **Linting (Frontend)** : Vérification avec `ESLint`.
+3.  **Tests Unitaires & Intégration** : Exécution de la suite `pytest` (Backend).
+4.  **Build Frontend** : Validation de la compilation Vite/TypeScript.
+5.  **Build Docker** : Vérification de la validité de la stack `docker-compose.yml`.
 
 ### Pipeline de Déploiement Continu (CD)
 Une fois les tests validés :

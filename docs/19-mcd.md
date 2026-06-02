@@ -1,29 +1,57 @@
 # Nova - MCD (modèle conceptuel)
 
 ## Entités (conceptuel)
-- **User** : compte (email, rôle)
-- **Watch (Suivi)** : suivi d’un produit (URL normalisée, statut, état stock)
-- **SiteProfile** : règles de détection associées à un domaine/motif
-- **WatchCheck** : historique des contrôles (résultat + erreur)
-- **Notification** : envoi d’alertes (email)
-- **PasswordResetToken** : jeton de réinitialisation de mot de passe (token, expiration)
-- **AuditLog** : traces admin/sécurité
+- **User** : Compte utilisateur identifié par son email.
+- **Watch (Suivi)** : Produit surveillé par un utilisateur (URL, statut, dernier état connu).
+- **SiteProfile** : Configuration de détection (sélecteurs CSS/JSON) associée à un domaine.
+- **WatchCheck** : Historique technique d'une vérification effectuée.
 
 ## Relations & cardinalités
-- User (1) — (0..n) Watch
-- SiteProfile (1) — (0..n) Watch
-- Watch (1) — (0..n) WatchCheck
-- Watch (1) — (0..n) Notification
-- User (1) — (0..n) PasswordResetToken
-- User (1) — (0..n) AuditLog
+- Un **User** possède 0 à n **Watch**.
+- Une **Watch** appartient à un seul **User**.
+- Un **SiteProfile** peut s'appliquer à 0 à n **Watch**.
+- Une **Watch** génère 0 à n **WatchCheck** au cours du temps.
 
 ## Diagramme (Mermaid ERD)
 ```mermaid
 erDiagram
-  USER ||--o{ WATCH : owns
-  SITE_PROFILE ||--o{ WATCH : applies
-  WATCH ||--o{ WATCH_CHECK : has
-  WATCH ||--o{ NOTIFICATION : triggers
-  USER ||--o{ PASSWORD_RESET_TOKEN : requests
-  USER ||--o{ AUDIT_LOG : produces
+  USER ||--o{ WATCH : possède
+  SITE_PROFILE ||--o{ WATCH : configure
+  WATCH ||--o{ WATCH_CHECK : génère
+```
+
+## Diagramme de Classes (Aligné sur Nova V2)
+```mermaid
+classDiagram
+    class User {
+        UUID id
+        String email
+        Enum role
+    }
+    class Watch {
+        UUID id
+        String original_url
+        String normalized_url
+        String label
+        Enum stock_state
+        Enum watch_status
+        DateTime last_checked_at
+        String variant_sku
+    }
+    class WatchCheck {
+        UUID id
+        DateTime checked_at
+        Integer http_status
+        String stock_state
+        JSON details
+    }
+    class SiteProfile {
+        UUID id
+        String name
+        String domain_pattern
+        JSON rules
+    }
+    User "1" -- "0..*" Watch : possède
+    Watch "1" -- "0..*" WatchCheck : historique
+    SiteProfile "1" -- "0..*" Watch : définit
 ```

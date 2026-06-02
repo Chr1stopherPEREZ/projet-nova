@@ -57,3 +57,29 @@ sequenceDiagram
   W-->>API: result (fetch_mode, matched_rules, stock_state, errors)
   API-->>A: 200 + result
 ```
+
+## Séquence 3 — Flux complet (Action utilisateur → Notification)
+Ce diagramme synthétise le parcours complet, de la création d'un suivi par l'utilisateur à la réception de l'alerte email par le worker.
+
+```mermaid
+sequenceDiagram
+    participant U as Utilisateur
+    participant F as Frontend (React)
+    participant A as API (FastAPI)
+    participant W as Worker
+    participant D as Base de Données
+    participant M as Mailhog
+
+    U->>F: Soumet URL Produit
+    F->>A: POST /watches (with CSRF)
+    A->>D: Enregistre Watch (State: UNKNOWN)
+    A-->>F: Retourne 201 Created
+    
+    Note over W,D: Cycle de check (Cron ou manuel)
+    W->>D: Récupère Watches actives
+    W->>A: Exécute Scraping (Check Engine)
+    A->>D: Enregistre WatchCheck (State: IN_STOCK)
+    Note over A,D: Détection de changement (State != previous)
+    A->>M: Envoie Email
+    M-->>U: Reçoit l'alerte
+```

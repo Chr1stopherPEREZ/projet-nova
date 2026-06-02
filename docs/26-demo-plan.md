@@ -80,14 +80,16 @@ Présenter le projet Nova au jury CDA en démontrant les compétences techniques
 3. Mentionner le quota utilisateur
 
 #### 2.4 Déclencher un check (4 min)
-1. **Modifier la fixture HTML** : passer le produit "en stock"
+1. **Simuler un restockage** : 
+   - Option A : Changer `FIXTURE_NAME=in_stock.html` dans le fichier `.env` et redémarrer.
+   - Option B : Modifier directement le contenu de la fixture active sur le disque.
 2. **Forcer un cycle du worker** :
-   - Via endpoint `POST /jobs/run` (Swagger, accès admin requis)
-   - Ou attendre le prochain cycle (montrer les logs)
+   - Via l'interface : bouton "Run check" sur le produit.
+   - Via Swagger : `POST /jobs/run` (accès admin requis).
+   - Observer les logs : "Check watch_id=... avec fixture 'in_stock.html'".
 3. **Montrer les résultats :**
-   - Statut passe à `IN_STOCK` dans le dashboard
-   - Logs du worker (transition détectée)
-   - Historique des contrôles (si visible dans l'UI)
+   - Le statut passe à `IN_STOCK` dans le dashboard (icône verte).
+   - Historique des contrôles : nouvelle entrée avec état "En stock".
 
 #### 2.5 Montrer la notification (3 min)
 1. Ouvrir **Mailhog** (http://localhost:8025)

@@ -16,7 +16,6 @@ flowchart LR
   UC4[Mettre en pause / reprendre]
   UC5[Supprimer un suivi]
   UC6[Consulter dashboard]
-  UC7[Recevoir notification email]
 
   UC8[Gérer profils de site]
   UC9[Tester un profil sur URL]
@@ -28,7 +27,6 @@ flowchart LR
   USER --> UC4
   USER --> UC5
   USER --> UC6
-  USER --> UC7
 
   ADMIN --> UC8
   ADMIN --> UC9
