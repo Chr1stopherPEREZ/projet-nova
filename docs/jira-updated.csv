@@ -1,0 +1,551 @@
+﻿Résumé,Clé de ticket,ID de ticket,Type de ticket,État,Clé de projet,Nom du projet,Type de projet,Chef de projet,ID de responsable de projet,Description du projet,Priorité,Résolution,Personne assignée,ID de la personne assignée,Rapporteur,ID de rapporteur,Créateur,ID de créateur,Création,Mise à jour,Dernier affichage,Résolu,Date d'échéance,Votes,Étiquettes,Description,Environnement,Observateurs,ID des observateurs,Estimation originale,Estimation restante,Temps consacré,Ratio du travail réel comparé à l'estimation,Σ Estimation originale,Σ Estimation restante,Σ Temps consacré,Niveau de sécurité,Champs personnalisés (Issue color),Champs personnalisés (Rank),Champs personnalisés (Start date),Champs personnalisés (Story Points),Champs personnalisés (Story point estimate),Champs personnalisés (Team),Champs personnalisés (Vulnerability),Champs personnalisés (development),Catégorie d'état,Catégorie d'état modifiée
+Docs MVP/API/Profils/Déploiement à jour,NOVA-34,10033,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:41 AM,27/janv./26 11:41 AM,,,,0,"MVP-V1,docs","Contexte
+- Garder la documentation cohérente et exploitable.
+
+Acceptance Criteria
+- docs/11-mvp.md + docs/07-api-spec.md à jour
+- Ajout doc profils + ex de règles
+- Ajout doc déploiement local (docker)
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0007b:,,,,,,,A faire,27/janv./26 11:41 AM
+Scénario démo 'retour en stock' + dataset minimal,NOVA-33,10032,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:41 AM,27/janv./26 11:41 AM,,,,0,MVP-V1,"Contexte
+- Avoir une démonstration simple pour jury/PO.
+
+Acceptance Criteria
+- Jeu de données: 1 watch OUT -> IN (via fixture ou page test)
+- Déclenchement worker -> email envoyé
+- Instructions dans README
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00073:,,,,,,,A faire,27/janv./26 11:41 AM
+CI (lint + tests),NOVA-32,10031,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:41 AM,27/janv./26 11:41 AM,,,,0,"MVP-V1,ci","Contexte
+- Automatiser contrôle qualité.
+
+Acceptance Criteria
+- Pipeline CI exécute lint + tests
+- Échec pipeline bloque merge (si applicable)
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0006v:,,,,,,,A faire,27/janv./26 11:41 AM
+Docker Compose (API + DB + Worker),NOVA-31,10030,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,docker","Contexte
+- Permettre un run local reproductible.
+
+Acceptance Criteria
+- docker compose up lance API + DB + worker
+- README indique les commandes
+- Variables d'env documentées
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0006n:,,,,,,,A faire,27/janv./26 11:41 AM
+Template email (simple) + configuration provider SMTP,NOVA-30,10029,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,email","Contexte
+- Mettre en place un template email et configurer l'envoi via variables d'environnement.
+
+Acceptance Criteria
+- Template clair (produit, lien, date)
+- Provider SMTP configurable via .env
+- Tests (mock) sur envoi
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0006f:,,,,,,,A faire,27/janv./26 11:40 AM
+Support fetch_mode HTTPX + fallback Playwright (si requis),NOVA-29,10028,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,playwright","Contexte
+- Permettre des fetch via HTTPX et, si nécessaire, un mode navigateur.
+
+Acceptance Criteria
+- Mode HTTPX fonctionne sur sites simples
+- Mode Playwright est configurable et utilisé si fetch_mode=browser
+- Timeouts/ressources contrôlés
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00067:,,,,,,,A faire,27/janv./26 11:40 AM
+Implémenter règles V1 (css_exists / keyword present/absent),NOVA-28,10027,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Support minimal des règles de détection pour déterminer IN/OUT.
+
+Acceptance Criteria
+- Le moteur supporte au moins:
+  - css selector exists
+  - keyword present
+  - keyword absent
+- Les résultats sont déterministes sur fixtures
+- Tests unitaires sur règles
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0005z:,,,,,,,A faire,27/janv./26 11:40 AM
+UI Front — Settings (email + logout),NOVA-27,10026,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,accessibility","Contexte
+- Implémenter écran Settings avec info compte et actions (logout, reset password si prévu).
+
+Acceptance Criteria
+- Affiche email utilisateur
+- Bouton logout fonctionnel
+- Accessibilité minimale
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0005r:,,,,,,,A faire,27/janv./26 11:40 AM
+UI Front — Dashboard (liste + actions pause/supprimer),NOVA-26,10025,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,accessibility","Contexte
+- Implémenter l'écran Dashboard côté Front.
+
+Acceptance Criteria
+- La liste des watches s'affiche avec états et actions
+- Les erreurs API sont visibles (toast/inline)
+- Accessibilité minimale (focus, labels)
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0005j:,,,,,,,A faire,27/janv./26 11:40 AM
+Implémenter CSRF Double Submit Cookie (endpoints mutables),NOVA-25,10024,Tâche,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,27/janv./26 3:25 PM,,,0,"MVP-V1,security,csrf","Contexte
+- Mettre en place la protection CSRF décrite dans l'API spec.
+
+Acceptance Criteria
+- Les endpoints mutables (POST/PATCH/DELETE) exigent un header CSRF qui correspond au cookie CSRF
+- Une requête sans header ou mismatch => 403
+
+Notes techniques
+- Cf docs/07-api-spec.md
+- Tests: OK, missing, mismatch
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0005b:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-15] Accessibilité minimale (front),NOVA-24,10023,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,accessibility","Contexte
+- Garantir un minimum d'accessibilité sur les écrans clés.
+
+Acceptance Criteria
+- Focus visible sur éléments interactifs
+- Labels/aria pour inputs essentiels
+- Messages d'erreurs lisibles et associés aux champs
+- Navigation clavier OK sur dashboard + auth
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00053:,,,,,,,A faire,27/janv./26 11:40 AM
+"EPIC G — Qualité, conformité, livraison",NOVA-23,10022,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Objectif
+- Accessibilité minimale, dockerisation, CI, doc et démo.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0004v:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-18] Dashboard admin métriques,NOVA-22,10021,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,rbac","Contexte
+- L'admin consulte des métriques d'état.
+
+Acceptance Criteria
+- Given un admin connecté
+- When il consulte la page métriques
+- Then il voit:
+  - broken_watches
+  - notifications_sent_24h
+  - active_watches
+- And un non-admin reçoit 403
+
+Notes techniques
+- Endpoint GET /admin/metrics
+- Tests RBAC + valeurs calculées
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0004n:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC F — Admin métriques,NOVA-21,10020,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,rbac","Objectif
+- Fournir un endpoint de métriques et une vue admin simple.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0004f:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-12] Anti-spam: ne pas renvoyer d'email si reste IN_STOCK,NOVA-20,10019,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,email","Contexte
+- Éviter le spam si le produit reste disponible.
+
+Acceptance Criteria
+- Given un watch déjà en IN_STOCK
+- When les checks suivants confirment IN_STOCK
+- Then aucun nouvel email n'est envoyé
+- And le comportement est testé
+
+Notes techniques
+- Verrou logique via state machine
+- Tests: IN->IN n'envoie rien
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00047:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-11] Envoyer un email lors de la transition vers IN_STOCK,NOVA-19,10018,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,email","Contexte
+- Envoyer une notification quand un produit repasse en stock.
+
+Acceptance Criteria
+- Given un watch ACTIVE avec stock_state OUT_OF_STOCK ou UNKNOWN
+- When un check détecte IN_STOCK
+- Then un email est envoyé une seule fois pour cette transition
+- And une entrée notification est persistée
+
+Notes techniques
+- Comparer ancien stock_state vs nouveau
+- Persister notification (anti-doublon)
+- Tests: transition OUT->IN envoie email
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0003z:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC E — Notifications email,NOVA-18,10017,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,email","Objectif
+- Envoyer un email uniquement lors de la transition vers IN_STOCK + anti-spam.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0003r:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-14] Tester un profil sur une URL (ADMIN),NOVA-17,10016,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,rbac","Contexte
+- L'admin peut tester un site_profile sur une URL et voir le résultat.
+
+Acceptance Criteria
+- Given un admin et un profil existant
+- When il lance un test sur une URL
+- Then le système renvoie:
+  - stock_state détecté
+  - règles appliquées/matchées
+  - erreurs si échec fetch/parsing
+
+Notes techniques
+- Endpoint /admin/site-profiles/<built-in function id>/test
+- Utiliser fixtures en test
+- Logs utiles
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0003j:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-13] CRUD site_profiles (ADMIN),NOVA-16,10015,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,rbac","Contexte
+- L'admin peut créer/éditer/supprimer des profils de site.
+
+Acceptance Criteria
+- Given un admin authentifié
+- When il crée un site_profile avec règles V1
+- Then le profil est persisté et listable
+- And un non-admin reçoit 403 sur ces routes
+
+Notes techniques
+- Endpoints /admin/site-profiles (CRUD)
+- RBAC strict + tests
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0003b:,,,,,,,A faire,27/janv./26 11:40 AM
+SPIKE — Sélectionner 2 sites cibles + créer fixtures HTML,NOVA-15,10014,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Objectif
+- Choisir 2 sites marchands réels (ou pages test) et capturer HTML stable (fixtures) pour développer/tester le moteur.
+
+Livrables
+- 2 URLs exemples par site
+- 1 fixture HTML OUT_OF_STOCK et 1 fixture IN_STOCK (si possible)
+- Notes sur mécanisme de disponibilité (CSS/keyword)
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00033:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC D — Moteur de détection & profils de site (Admin),NOVA-14,10013,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Objectif
+- Gérer des profils de site (règles de détection) + tester un profil sur une URL.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0002v:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-10] Gestion des erreurs (UNKNOWN/BROKEN) après échecs consécutifs,NOVA-13,10012,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Si 3 échecs consécutifs, marquer le watch en BROKEN.
+
+Acceptance Criteria
+- Given un watch ACTIVE
+- When 3 checks consécutifs échouent (timeout/erreur parsing)
+- Then le watch passe à BROKEN
+- And stock_state devient UNKNOWN ou reste cohérent selon règles
+- And l'erreur est loggée
+
+Notes techniques
+- Compteur basé sur checks persistés
+- Tests: 3 erreurs => BROKEN
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0002n:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-09] Vérifier automatiquement les stocks (scheduler),NOVA-12,10011,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Le worker parcourt les watches ACTIVE et exécute des checks.
+
+Acceptance Criteria
+- Given des watches ACTIVE
+- When le scheduler s'exécute
+- Then un check est créé par watch (watch_check)
+- And le throttling par domaine est respecté (1 req / 5s)
+- And last_checked_at est mis à jour
+
+Notes techniques
+- APScheduler
+- Gestion timeouts + retries raisonnables
+- Tests: scheduler unit + integration sur fixtures
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0002f:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC C — Worker / Scheduler,NOVA-11,10010,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Objectif
+- Vérifier automatiquement les stocks via scheduler + persister les checks.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00027:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-08] Supprimer un suivi,NOVA-10,10009,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Permettre de supprimer un watch.
+
+Acceptance Criteria
+- Given un watch appartenant à l'utilisateur
+- When il le supprime
+- Then le watch n'apparaît plus dans la liste
+- And les données associées (checks/notifications) sont gérées (cascade ou conservation définie)
+
+Notes techniques
+- Décider: cascade delete vs soft delete
+- Tests: ownership + delete OK
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0001z:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-07] Pause/Reprendre un suivi,NOVA-9,10008,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Permettre de mettre un watch en PAUSED puis revenir à ACTIVE.
+
+Acceptance Criteria
+- Given un watch existant appartenant à l'utilisateur
+- When il le met en pause
+- Then le watch passe à PAUSED et le worker l'ignore
+- When il le reprend
+- Then le watch repasse à ACTIVE
+
+Notes techniques
+- PATCH /watches/<built-in function id>
+- Tests: ownership, status transitions
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0001r:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-06] Lister mes suivis (dashboard),NOVA-8,10007,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Afficher les watches d'un utilisateur avec état et dernière vérification.
+
+Acceptance Criteria
+- Given un utilisateur connecté
+- When il consulte son dashboard
+- Then il voit la liste de ses watches avec:
+  - status (ACTIVE/PAUSED/BROKEN)
+  - stock_state (IN/OUT/UNKNOWN)
+  - last_checked_at
+- And la liste est triable (au moins par date) ou stable
+
+Notes techniques
+- Endpoint GET /watches
+- Pagination optionnelle
+- Tests: only own watches returned
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0001j:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-05] Créer un suivi (watch),NOVA-7,10006,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,High,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Contexte
+- Un utilisateur crée un suivi sur une URL produit.
+
+Acceptance Criteria
+- Given un utilisateur connecté
+- When il ajoute une URL produit
+- Then un watch ACTIVE est créé
+- And l'URL est normalisée/validée
+- And si quota (20) dépassé => erreur claire
+- And les champs nécessaires sont persistés
+
+Notes techniques
+- Quota user: 20 watches
+- Associer site_profile si possible
+- Tests: create OK, invalid url, quota reached
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0001b:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC B — Suivis (CRUD) & Dashboard,NOVA-6,10005,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,MVP-V1,"Objectif
+- CRUD des suivis (watches) + affichage dashboard.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00013:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-04] Mot de passe oublié + reset (token expirant via email),NOVA-5,10004,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,security,email","Contexte
+- Permettre de réinitialiser un mot de passe via un lien/token.
+
+Acceptance Criteria
+- Given un utilisateur avec un email existant
+- When il demande une réinitialisation
+- Then un token unique avec expiration est généré et envoyé par email
+- When l'utilisateur soumet un nouveau mot de passe via le token valide
+- Then le mot de passe est mis à jour et le token devient inutilisable
+- And si token expiré/invalide => erreur claire
+
+Notes techniques
+- Stocker token + expiry (table password_reset_tokens ou champs dédiés)
+- Envoi email (provider configurable)
+- Tests: génération, expiration, invalidation après usage
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0000v:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-03] Déconnexion,NOVA-4,10003,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,security","Contexte
+- Permettre à un utilisateur de se déconnecter.
+
+Acceptance Criteria
+- Given un utilisateur connecté
+- When il déclenche la déconnexion
+- Then le cookie de session est supprimé/invalide
+- And l'accès aux routes protégées échoue ensuite (401)
+
+Notes techniques
+- Endpoint logout (clear cookie)
+- Tests: logout invalide la session
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0000n:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-02] Connexion (JWT en cookie HttpOnly),NOVA-3,10002,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,security","Contexte
+- Authentifier un utilisateur et établir une session via cookie HttpOnly.
+
+Acceptance Criteria
+- Given un compte existant avec mot de passe correct
+- When l'utilisateur se connecte
+- Then un JWT est émis et stocké en cookie HttpOnly
+- And les routes protégées refusent l'accès sans cookie valide (401)
+- And une erreur claire est renvoyée si credentials invalides
+
+Notes techniques
+- Endpoint login + set-cookie
+- Middleware auth
+- Tests: login OK/KO, accès route protégée
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i0000f:,,,,,,,A faire,27/janv./26 11:40 AM
+[US-01] Inscription utilisateur,NOVA-2,10001,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,security","Contexte
+- Permettre à un utilisateur de créer un compte.
+
+Acceptance Criteria (Given/When/Then)
+- Given un email non utilisé et un mot de passe valide
+- When l'utilisateur soumet le formulaire d'inscription
+- Then un compte est créé et le mot de passe est hashé
+- And une erreur claire est renvoyée si l'email est déjà utilisé
+- And la validation des champs empêche les entrées invalides
+
+Notes techniques
+- Table users + contraintes d'unicité sur email
+- Hash password (ex: bcrypt/argon2)
+- Tests: création OK, email duplicate, validation
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|i00007:,,,,,,,A faire,27/janv./26 11:40 AM
+EPIC A — Auth & sécurité baseline,NOVA-1,10000,Epic,À faire,NOVA,Nova,software,Christopher Perez,6412f2dcf1b529dfa98c5c30,,Medium,,,,Christopher Perez,6412f2dcf1b529dfa98c5c30,Christopher Perez,6412f2dcf1b529dfa98c5c30,27/janv./26 11:40 AM,27/janv./26 11:40 AM,,,,0,"MVP-V1,security","Objectif
+- Authentification sécurisée (JWT en cookie HttpOnly) + protections de base.
+
+Notes
+- S'appuie sur docs/07-api-spec.md (CSRF Double Submit Cookie) et docs/13-user-stories.md.
+
+Definition of Done (DoD)
+- Tests pertinents ajoutés (unit/integration selon le cas)
+- Lint/format OK
+- Documentation mise à jour si endpoint/comportement change
+- Cas d’erreur gérés (400/401/403/404/429/500)
+- Logs utiles (worker/admin) si applicable",,Christopher Perez,6412f2dcf1b529dfa98c5c30,,,,,,,,,,0|hzzzzz:,,,,,,,A faire,27/janv./26 11:40 AM

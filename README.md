@@ -1,4 +1,4 @@
-# Nova — Plateforme de suivi de retour en stock
+# Nova - Plateforme de suivi de retour en stock
 
 Nova est une application web conçue pour surveiller la disponibilité de produits sur des sites marchands et notifier les utilisateurs dès qu'un retour en stock est détecté. Ce projet est réalisé sur un cycle court de **4 semaines**, avec un suivi de projet rigoureux assuré via **Jira (Kanban)**.
 
@@ -30,19 +30,47 @@ En mode **production** (`APP_ENV=production`), l'API refuse de démarrer si `JWT
 
 Pour la démo jury, utiliser l’UI Docker (:3000). Pour dev front en live, utiliser `pnpm dev` (:5173).
 
-### Utilisateur de démonstration
+### Stabilité de la démo (Mode Fixture)
+Pour garantir une démonstration sans faille devant le jury (indépendante de la connexion internet ou des changements sur les sites cibles), le projet propose un **mode Fixture**.
 
-| Champ | Valeur |
-|-------|--------|
-| Email | `demo@nova.dev` |
-| Mot de passe | `Demo12345!` |
+- **Activation** : Assurez-vous que `CHECK_MODE=fixture` est défini dans votre `.env`.
+- **Contrôle du résultat** : Utilisez le script de déclenchement pour simuler un changement d'état sans redémarrer les containers (voir `docs/scenario-demo-v2.md`).
+- **Vérification** : Les logs de l'API afficheront explicitement l'utilisation des fixtures.
+
+Consultez le [Scénario de démo V2](./docs/scenario-demo-v2.md) pour le déroulement pas à pas.
+
+### Utilisateurs de démonstration
+
+| Rôle | Email | Mot de passe | Dashboard |
+|------|-------|--------------|-----------|
+| **Utilisateur** | `user@example.com` | `password123` | `/dashboard` |
+| **Administrateur** | `admin@example.com` | `adminpassword` | `/admin/dashboard` |
+
+### Expérience par rôle
+
+Nova propose deux expériences distinctes selon le rôle de l'utilisateur :
+
+#### 👤 Utilisateur Standard
+Menu complet pour gérer ses propres surveillances :
+- **Tableau de bord** : KPIs personnels et performance des suivis.
+- **Mes suivis** : Gestion (CRUD) des produits surveillés.
+- **Paramètres** : Préférences de compte et informations sur les alertes e-mail (Mailhog).
+
+#### 🛡️ Administrateur
+Vision globale du système :
+- **Dashboard Admin** : KPIs globaux (tous utilisateurs) et top domaines.
+- **Profils de site (V2)** : Gestion des profils de détection (Masqué pour la V1).
+
+> **Note** : Les fonctionnalités d'édition avancées (CRUD profils, testeur d'URL) sont prévues pour une version ultérieure (V2). L'interface actuelle permet la consultation des données réelles.
+
+> **Note** : Les URLs `/admin/*` sont protégées par un `RoleGuard` et redirigent vers le dashboard utilisateur avec un message d'alerte si un utilisateur standard tente d'y accéder.
 
 > **Note** : Les tests s'exécutent via `docker compose exec api pytest tests/ -v`
 
 ## Objectifs du projet
 Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de changement de disponibilité.
 
-**État actuel (Lot 8) :**
+**État d'avancement (Certification CDA) :**
 
 | Lot | Description | Statut |
 |-----|-------------|--------|
@@ -54,8 +82,8 @@ Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de
 | **Lot 6** | Frontend skeleton + Auth + CSRF bootstrap | ✅ Clos |
 | **Lot 7** | Watches UI + Run check | ✅ Clos |
 | **Lot 8** | Robustesse API + UX | ✅ Clos |
-| **Lot 9** | Pack tests + intégration | ⏳ À venir |
-| **Lot 10** | Docs jury + release | ⏳ À venir |
+| **Lot 9** | Pack tests + intégration | ✅ Clos |
+| **Lot 10** | Docs jury + release | 🚧 Finalisation |
 
 ## Structure de la documentation
 Le projet est entièrement documenté pour garantir une implémentation fluide et cohérente :
@@ -298,6 +326,7 @@ cd web && pnpm install && pnpm dev
 ```
 
 **Pages implémentées :**
+- `/register` — Création de compte
 - `/login` — Écran de connexion
 - `/dashboard` — Tableau de bord
 - `/watches` — Liste des suivis
@@ -307,6 +336,7 @@ cd web && pnpm install && pnpm dev
 - `/help` — Aide
 
 **Fonctionnalités Lot 7 :**
+- Inscription et Connexion fonctionnelles
 - CSRF bootstrap automatique au démarrage
 - Route guard (redirection `/login` si non authentifié)
 - Toggle activer/désactiver un suivi
