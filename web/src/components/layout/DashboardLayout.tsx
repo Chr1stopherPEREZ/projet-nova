@@ -1,6 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pin, Bell, Settings, Menu, X } from 'lucide-react'
+import { Pin, Settings, Menu, X } from 'lucide-react'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
 import { authService } from '../../api/client'
@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, title, subtitle }: DashboardLayoutProps) {
   const navigate = useNavigate()
-  const [unreadCount, setUnreadCount] = useState(0)
+  /* const [unreadCount, setUnreadCount] = useState(0) */
   const [isAdmin, setIsAdmin] = useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -27,7 +27,7 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
         if (!isUserAdmin && user) {
           const stats = await authService.getStats()
           if (stats && stats.kpis) {
-            setUnreadCount(stats.kpis.unread_notifications_count || 0)
+            /* setUnreadCount(stats.kpis.unread_notifications_count || 0) */
           }
         }
       } catch (error) {
@@ -42,6 +42,7 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
     return () => clearInterval(interval)
   }, [])
 
+  /*
   const handleNotificationClick = async () => {
     try {
       setUnreadCount(0)
@@ -51,6 +52,7 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
     }
     navigate('/notifications')
   }
+  */
 
   const handleLogout = async () => {
     try {
@@ -63,7 +65,7 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
   }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background-app overflow-hidden">
       {/* Sidebar */}
       <Sidebar 
         onLogout={handleLogout} 
@@ -74,12 +76,12 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         {/* Header */}
-        <header className="bg-white border-b border-border px-4 md:px-6 py-4">
+        <header className="bg-background-card border-b border-border-default px-4 md:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {/* Mobile menu button */}
               <button
-                className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                className="lg:hidden p-2 text-text-secondary hover:bg-background-app rounded-md"
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               >
                 {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -87,54 +89,44 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
 
               <div>
                 {title && (
-                  <h1 className="text-xl md:text-2xl font-bold text-text truncate max-w-[150px] sm:max-w-none">{title}</h1>
+                  <h1 className="text-xl md:text-2xl font-bold text-text-primary truncate max-w-[150px] sm:max-w-none">{title}</h1>
                 )}
                 {subtitle && (
-                  <p className="text-gray-600 mt-1 text-sm hidden sm:block">{subtitle}</p>
+                  <p className="text-text-secondary mt-1 text-sm hidden sm:block">{subtitle}</p>
                 )}
               </div>
             </div>
 
             {/* Header actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               {!isAdmin && (
                 <>
                   <button 
                     onClick={() => navigate('/watches')}
                     title="Mes suivis"
-                    className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-2"
+                    className="p-2 text-text-secondary hover:text-primary-600 hover:bg-background-app rounded-full transition-all flex items-center gap-2"
                   >
                     <Pin className="h-5 w-5" />
-                    <span className="hidden md:inline text-sm font-medium">Mes suivis</span>
+                    <span className="hidden md:inline text-sm font-semibold">Mes suivis</span>
                   </button>
+                  {/* Bouton Notifications masqué pour la V2 (Page en attente) */}
+                  {/* 
                   <button 
                     onClick={handleNotificationClick}
                     title="Notifications"
-                    className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors relative"
+                    className="p-2 text-text-secondary hover:text-primary-600 hover:bg-background-app rounded-full transition-all relative"
                   >
                     <Bell className="h-5 w-5" />
                     {unreadCount > 0 && (
-                      <span className="absolute top-1 right-1 w-2 h-2 bg-danger-500 rounded-full"></span>
+                      <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-danger-text border-2 border-background-card rounded-full"></span>
                     )}
                   </button>
+                  */}
                 </>
               )}
-              {/* 
-                Bouton "Tous les suivis" masqué pour l'audit/rattrapage V1 car la page est vide 
-                {isAdmin && (
-                  <button 
-                    onClick={() => navigate('/admin/watches')}
-                    title="Tous les suivis"
-                    className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors flex items-center gap-2"
-                  >
-                    <Pin className="h-5 w-5" />
-                    <span className="hidden md:inline text-sm font-medium">Tous les suivis</span>
-                  </button>
-                )}
-              */}
               <button 
                 onClick={() => navigate('/settings')}
-                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-100 rounded-full transition-colors"
+                className="p-2 text-text-secondary hover:text-primary-600 hover:bg-background-app rounded-full transition-all"
               >
                 <Settings className="h-5 w-5" />
               </button>
@@ -143,7 +135,7 @@ export default function DashboardLayout({ children, title, subtitle }: Dashboard
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
           {children}
         </main>
 

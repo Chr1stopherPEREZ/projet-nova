@@ -2,20 +2,20 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-border bg-white">
-      <div className="px-6 py-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+    <footer className="border-t border-border-default bg-background-card">
+      <div className="px-6 py-6 md:px-8">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <div className="flex items-center gap-2">
             <img 
-              src="/Logo_Nova.png" 
+              src="/Logo_Nova_V2.png" 
               alt="Nova Logo" 
-              className="h-8 w-auto"
+              className="h-10 w-auto grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300"
             />
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-6 text-sm text-gray-600">
+          <div className="flex items-center gap-8 text-sm font-medium text-text-secondary">
             <a href="/privacy" className="hover:text-primary-600 transition-colors">
               Politique de confidentialité
             </a>
@@ -26,8 +26,8 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-4 pt-4 border-t border-border text-center text-sm text-gray-500">
-          © {currentYear} Christopher PEREZ
+        <div className="mt-6 pt-6 border-t border-border-default text-center text-xs font-medium text-text-muted tracking-widest">
+          © {currentYear} Nova - Christopher PEREZ
         </div>
       </div>
     </footer>
