@@ -6,3 +6,19 @@ body {
   @apply bg-background-app text-text-primary antialiased;
   font-feature-settings: "ss01", "ss02", "cv01", "cv02";
 }
+
+/* 
+  Nova V2 - Anti-scroll Auth
+  Ces règles densifient l'UI sur les écrans courts (< 760px de haut)
+*/
+@media (max-height: 760px) {
+  .auth-column { padding: 32px 40px !important; }
+  .auth-form { gap: 12px !important; }
+  .auth-lead { margin-bottom: 20px !important; }
+  .auth-marketing { margin-top: 40px !important; }
+}
+
+@media (max-height: 660px) {
+  .auth-column { padding: 24px 32px !important; }
+  .auth-form { gap: 10px !important; }
+}

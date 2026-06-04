@@ -6,5 +6,6 @@ export { default as Badge } from './Badge'
 export { default as LoadingState } from './LoadingState'
 export { default as EmptyState } from './EmptyState'
 export { default as PageContainer } from './PageContainer'
+export { NovaLogo } from './NovaLogo'
 
 /* Index.ts */

@@ -1,7 +1,9 @@
 import { useState, FormEvent, useEffect } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
 import { authService } from '../api/client'
-import { Button, Input, Alert } from '../components/ui'
+import { Alert } from '../components/ui'
+import { Mail, Lock } from 'lucide-react'
+import { AuthShell, Field } from '../components/auth/AuthShell'
 
 function LoginPage() {
   const navigate = useNavigate()
@@ -45,79 +47,55 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/Logo_Nova.png" 
-              alt="Nova Logo" 
-              className="h-20 w-auto"
-            />
-          </div>
-          <h2 className="mt-4 text-2xl font-bold text-text">Connexion</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Suivi de retour en stock
-          </p>
+    <AuthShell>
+      <h1 className="text-2xl font-semibold -tracking-[0.02em] mb-1.5">Connexion</h1>
+      <p className="auth-lead text-sm text-ink2 mb-7">Accédez à vos suivis Nova.</p>
+
+      {/* Messages */}
+      {error && (
+        <div className="mb-4">
+          <Alert variant="danger">{error}</Alert>
         </div>
+      )}
+      {success && (
+        <div className="mb-4">
+          <Alert variant="success">{success}</Alert>
+        </div>
+      )}
 
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Messages */}
-          {error && (
-            <Alert variant="danger">{error}</Alert>
-          )}
-          {success && (
-            <Alert variant="success">{success}</Alert>
-          )}
+      <form className="auth-form flex flex-col gap-3.5" onSubmit={handleSubmit}>
+        <Field 
+          label="Adresse e-mail" 
+          icon={Mail} 
+          type="email" 
+          placeholder="vous@exemple.fr"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Field
+          label="Mot de passe"
+          icon={Lock}
+          type="password"
+          placeholder="••••••••"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          right={<Link to="/forgot-password" title="Fonctionnalité à venir" className="text-[12.5px] font-medium text-primary">Mot de passe oublié ?</Link>}
+        />
+        <button 
+          disabled={isLoading}
+          className={`h-10 mt-1 rounded-md bg-primary text-white text-[13px] font-medium hover:bg-primary-hover transition flex items-center justify-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isLoading ? 'Connexion en cours...' : 'Se connecter'}
+        </button>
+      </form>
 
-          <div className="space-y-4">
-            {/* Email */}
-            <Input
-              label="Adresse email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.com"
-            />
-
-            {/* Password */}
-            <Input
-              label="Mot de passe"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          {/* Submit button */}
-          <Button
-            type="submit"
-            size="lg"
-            isLoading={isLoading}
-            className="w-full"
-          >
-            Se connecter
-          </Button>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Pas encore de compte ?{' '}
-              <Link to="/register" className="font-medium text-primary-600 hover:text-primary-500">
-                S'inscrire gratuitement
-              </Link>
-            </p>
-          </div>
-        </form>
-
-      </div>
-    </div>
+      <p className="text-[13px] text-ink2 text-center mt-7">
+        Pas encore de compte ?{' '}
+        <Link to="/register" className="text-primary font-medium">Créer un compte</Link>
+      </p>
+    </AuthShell>
   )
 }
 

@@ -10,8 +10,21 @@ export default {
         sans: ['Geist', 'system-ui', 'sans-serif'],
       },
       colors: {
+        /* Handoff Auth V2 */
+        bg:        '#F8FAFC',
+        surface:   '#FFFFFF',
+        ink:       '#0F172A',
+        ink2:      '#64748B',
+        ink3:      '#94A3B8',
+        borderStr: '#CBD5E1',
+        error:     '#DC2626',
+        muted:     '#F1F5F9',
+
         /* Core Palette */
         primary: {
+          DEFAULT: '#2563EB',
+          hover: '#1D4ED8',
+          soft: '#EFF4FF',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -29,6 +42,7 @@ export default {
           sidebar: '#F9FAFB', /* Catskill White */
         },
         border: {
+          DEFAULT: '#E2E8F0',
           default: '#E5E7EB', /* Platinium */
           subtle: '#CBD5E1',  /* Pale Slate */
         },
@@ -40,6 +54,8 @@ export default {
         },
         /* Semantic Palette */
         success: {
+          DEFAULT: '#16A34A',
+          soft: '#DCFCE7',
           text: '#16A34A',      /* Medium Jungle */
           bg: '#DCFCE7',        /* Frosted Mint */
         },

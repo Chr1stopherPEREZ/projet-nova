@@ -1,13 +1,15 @@
 import { useState, FormEvent } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../api/client'
-import { Button, Input, Alert } from '../components/ui'
+import { Alert } from '../components/ui'
+import { Mail, Lock } from 'lucide-react'
+import { AuthShell, Field } from '../components/auth/AuthShell'
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -16,11 +18,6 @@ function RegisterPage() {
     setError(null)
 
     /* Validation front */
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas')
-      return
-    }
-
     if (password.length < 8) {
       setError('Le mot de passe doit contenir au moins 8 caractères')
       return
@@ -46,86 +43,68 @@ function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/Logo_Nova.png" 
-              alt="Nova Logo" 
-              className="h-20 w-auto"
-            />
-          </div>
-          <h2 className="mt-4 text-2xl font-bold text-text">Créer un compte</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Rejoignez Nova pour suivre vos produits favoris
-          </p>
+    <AuthShell>
+      <h1 className="text-2xl font-semibold -tracking-[0.02em] mb-1.5">Créer un compte</h1>
+      <p className="auth-lead text-sm text-ink2 mb-7">Aucune carte bancaire requise.</p>
+
+      {/* Error message */}
+      {error && (
+        <div className="mb-4">
+          <Alert variant="danger">{error}</Alert>
+        </div>
+      )}
+
+      <form className="auth-form flex flex-col gap-3.5" onSubmit={handleSubmit}>
+        <Field 
+          label="Nom d’utilisateur" 
+          placeholder="Christopher" 
+          required
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Field 
+          label="Adresse e-mail" 
+          icon={Mail} 
+          type="email" 
+          placeholder="vous@exemple.fr"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        
+        <div className="flex flex-col gap-1.5">
+          <Field 
+            label="Mot de passe" 
+            icon={Lock} 
+            type="password" 
+            placeholder="8 caractères minimum"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <div className="text-[12.5px] text-ink2">Au moins 8 caractères, dont 1 chiffre.</div>
         </div>
 
-        {/* Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {/* Error message */}
-          {error && (
-            <Alert variant="danger">{error}</Alert>
-          )}
+        <label className="flex items-start gap-2 mt-1 leading-[1.5] cursor-pointer">
+          <input type="checkbox" required defaultChecked className="mt-0.5 w-3.5 h-3.5 accent-primary" />
+          <span className="text-[12.5px] text-ink2">
+            J’accepte les <a href="#" className="text-primary">conditions d’utilisation</a>.
+          </span>
+        </label>
 
-          <div className="space-y-4">
-            {/* Email */}
-            <Input
-              label="Adresse email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="vous@exemple.com"
-            />
+        <button 
+          disabled={isLoading}
+          className={`h-10 mt-1 rounded-md bg-primary text-white text-[13px] font-medium hover:bg-primary-hover transition flex items-center justify-center ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+        >
+          {isLoading ? 'Création en cours...' : 'Créer mon compte'}
+        </button>
+      </form>
 
-            {/* Password */}
-            <Input
-              label="Mot de passe"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-
-            {/* Confirm Password */}
-            <Input
-              label="Confirmer le mot de passe"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
-
-          {/* Submit button */}
-          <Button
-            type="submit"
-            size="lg"
-            isLoading={isLoading}
-            className="w-full"
-          >
-            S'inscrire
-          </Button>
-          
-          <div className="text-center mt-4">
-            <p className="text-sm text-gray-600">
-              Déjà un compte ?{' '}
-              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-                Se connecter
-              </Link>
-            </p>
-          </div>
-        </form>
-      </div>
-    </div>
+      <p className="text-[13px] text-ink2 text-center mt-7">
+        Déjà inscrit ?{' '}
+        <Link to="/login" className="text-primary font-medium">Se connecter</Link>
+      </p>
+    </AuthShell>
   )
 }
 
