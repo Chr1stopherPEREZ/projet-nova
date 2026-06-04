@@ -1,255 +1,164 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { Pin, CheckCircle, Bell, AlertCircle, Clock, Search, Globe, Plus } from 'lucide-react'
+import { Plus, ArrowRight } from 'lucide-react'
 import DashboardLayout from '../components/layout/DashboardLayout'
-import { Card, CardContent, LoadingState, Alert, Input, EmptyState, Button } from '../components/ui'
-import { authService } from '../api/client'
+import { StatCard, DashboardCard, StatusBadge, Segment } from '../components/ui/DashboardUI'
+import { LineChart } from '../components/ui/LineChart'
+import { Sparkline } from '../components/ui/Sparkline'
 
-interface StatCardProps {
-  title: string
-  value: string | number
-  icon: React.ElementType
-  iconBgColor: string
-}
+const STATS = [
+  { label: 'Suivis actifs', value: '5', delta: '2 en stock · 3 en rupture' },
+  { label: 'Vérifications · 7 j', value: '106', delta: '~ 15 par jour' },
+  { label: 'Retours en stock', value: '3', delta: 'Dernier il y a 8 min' },
+  { label: 'Alertes envoyées', value: '3', delta: 'Par e-mail' },
+];
 
-function StatCard({ title, value, icon: Icon, iconBgColor }: StatCardProps) {
-  return (
-    <Card>
-      <CardContent className="py-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-600">{title}</p>
-            <p className="text-3xl font-bold text-text mt-2">{value}</p>
-          </div>
-          <div className={`p-3 rounded-full ${iconBgColor}`}>
-            <Icon className="h-6 w-6 text-white" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
+const CHART_DATA = [
+  { label: 'Lun', checks: 14, available: 2 },
+  { label: 'Mar', checks: 16, available: 3 },
+  { label: 'Mer', checks: 15, available: 1 },
+  { label: 'Jeu', checks: 18, available: 4 },
+  { label: 'Ven', checks: 17, available: 2 },
+  { label: 'Sam', checks: 12, available: 0 },
+  { label: 'Dim', checks: 14, available: 3 },
+];
 
-interface DashboardStats {
-  kpis: {
-    active_watches: number
-    checks_today: number
-    changes_7d: number
-    errors_7d: number
-    last_check_at: string | null
-  }
-  table: Array<{
-    host: string
-    checks: number
-    changes: number
-    alerts_sent: number
-  }>
-}
+const TRACKINGS = [
+  { id: 1, name: 'Lampe « Halo »', source: "L'Esprit Belle", status: 'in_stock', trend: [2, 2, 3, 2, 3, 5, 7] },
+  { id: 2, name: 'Coffret « Solstice »', source: 'Cassiopée Bougie', status: 'out', trend: [6, 5, 5, 4, 3, 3, 2] },
+  { id: 3, name: 'Bougie « Figuier »', source: 'Cassiopée Bougie', status: 'in_stock', trend: [5, 5, 6, 5, 6, 6, 6] },
+  { id: 4, name: 'Montre « Horizon »', source: 'Terre de France', status: 'out', trend: [3, 3, 2, 2, 2, 2, 2] },
+  { id: 5, name: 'Pull « Brume »', source: 'Terre de France', status: 'sold_out', trend: [3, 3, 3, 3, 3, 3, 3] },
+];
+
+const RECENT_ACTIVITY = [
+  { id: 1, time: 'il y a 8 min', product: 'Lampe chauffe-bougie « Halo »', source: "L'Esprit Belle", from: 'out', to: 'in_stock', price: '49,90 €' },
+  { id: 2, time: 'il y a 38 min', product: 'Coffret 3 bougies « Solstice »', source: 'Cassiopée Bougie', from: 'in_stock', to: 'out', price: '59,00 €' },
+  { id: 3, time: 'il y a 2 h', product: 'Bougie artisanale « Figuier »', source: 'Cassiopée Bougie', from: 'in_stock', to: 'in_stock', price: '24,90 €' },
+  { id: 4, time: 'il y a 3 h', product: 'Pull mérinos « Brume »', source: 'Terre de France', from: 'out', to: 'sold_out', price: '—' },
+];
 
 function DashboardPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [navAlert] = useState<string | null>(location.state?.error || null)
-  const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const data = await authService.getStats()
-        setStats(data)
-      } catch (err: unknown) {
-        let msg = "Erreur lors du calcul des statistiques. Réessayez."
-        const error = err as Error
-        if (error.message && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
-          msg = "Session expirée, veuillez vous reconnecter."
-        } else if (error.message && error.message.includes('500')) {
-          msg = "Erreur serveur (500) lors de la récupération des statistiques."
-        } else if (error.message) {
-          msg = error.message
-        }
-        setError(msg)
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchStats()
-  }, [])
-
-  if (loading) {
-    return (
-      <DashboardLayout title="Tableau de bord">
-        <LoadingState message="Chargement de vos statistiques..." />
-      </DashboardLayout>
-    )
-  }
-
-  if (error) {
-    return (
-      <DashboardLayout title="Tableau de bord">
-        <div className="max-w-2xl mx-auto mt-12 space-y-6 text-center">
-          <Alert variant="danger">{error}</Alert>
-          <div className="flex justify-center gap-4">
-            <Button 
-              variant="outline"
-              onClick={() => window.location.reload()}
-            >
-              Réessayer
-            </Button>
-            <Button 
-              onClick={() => navigate('/login')}
-            >
-              Se reconnecter
-            </Button>
-          </div>
-        </div>
-      </DashboardLayout>
-    )
-  }
-
-  const kpis = stats?.kpis || {
-    active_watches: 0,
-    checks_today: 0,
-    changes_7d: 0,
-    errors_7d: 0,
-    last_check_at: null
-  }
-  const table = stats?.table || []
-  const hasNoWatches = kpis.active_watches === 0 && table.length === 0
-  
-  const filteredTable = table.filter((row) => 
-    row.host.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-
-  if (hasNoWatches) {
-    return (
-      <DashboardLayout
-        title="Mon Tableau de bord"
-        subtitle="Aperçu de vos surveillances"
-      >
-        {navAlert && (
-          <Alert variant="danger" className="mb-6">{navAlert}</Alert>
-        )}
-        <div className="mt-12">
-          <EmptyState
-            icon={<Pin className="h-12 w-12" />}
-            title="Aucun suivi pour le moment"
-            description="Commencez par créer un suivi pour voir vos statistiques (checks, disponibilité, etc.)."
-            action={
-              <Button 
-                onClick={() => navigate('/watches/new')}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Créer un suivi
-              </Button>
-            }
-          />
-        </div>
-      </DashboardLayout>
-    )
-  }
-
   return (
-    <DashboardLayout
-      title="Mon Tableau de bord"
-      subtitle="Aperçu de vos surveillances"
+    <DashboardLayout 
+      title="Tableau de bord"
+      topbarAction={
+        <button className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-primary text-white text-[13px] font-medium hover:bg-primary-hover transition-colors shadow-sm">
+          <Plus size={16} strokeWidth={2} />
+          <span>Nouveau suivi</span>
+        </button>
+      }
     >
-      {navAlert && (
-        <Alert variant="danger" className="mb-6">{navAlert}</Alert>
-      )}
-      {/* KPIs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-        <StatCard
-          title="Suivis actifs"
-          value={kpis.active_watches || 0}
-          icon={Pin}
-          iconBgColor="bg-primary-600"
-        />
-        <StatCard
-          title="Checks aujourd'hui"
-          value={kpis.checks_today || 0}
-          icon={CheckCircle}
-          iconBgColor="bg-success-600"
-        />
-        <StatCard
-          title="Changements (7j)"
-          value={kpis.changes_7d || 0}
-          icon={Bell}
-          iconBgColor="bg-warning-600"
-        />
-        <StatCard
-          title="Erreurs (7j)"
-          value={kpis.errors_7d || 0}
-          icon={AlertCircle}
-          iconBgColor="bg-danger-600"
-        />
-        <StatCard
-          title="Dernier check"
-          value={kpis.last_check_at ? new Date(kpis.last_check_at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : "N/A"}
-          icon={Clock}
-          iconBgColor="bg-info-600"
-        />
-      </div>
-
-      {/* Performance Table */}
-      <div className="mt-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-          <h2 className="text-xl font-bold text-text">Performance des surveillances</h2>
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Rechercher un site..."
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+      <header className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-[22px] font-semibold -tracking-[0.015em] text-ink">Bonjour Christopher</h1>
+          <p className="text-[13.5px] text-ink2 mt-1">Aperçu de vos suivis sur les 7 derniers jours.</p>
         </div>
+        <Segment options={['24h', '7 jours', '30 jours']} active="7 jours" />
+      </header>
 
-        <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-border">
-                  <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Site surveillé</th>
-                  <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Checks</th>
-                  <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Changements</th>
-                  <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Alertes envoyées</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {filteredTable.length > 0 ? (
-                  filteredTable.map((row, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Globe className="h-4 w-4 text-gray-400" />
-                          <span className="font-medium text-text">{row.host}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">{row.checks}</td>
-                      <td className="px-6 py-4 text-gray-600">{row.changes}</td>
-                      <td className="px-6 py-4 text-gray-600">{row.alerts_sent}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                      Aucune donnée disponible
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {STATS.map(s => (
+          <StatCard key={s.label} label={s.label} value={s.value} delta={s.delta} />
+        ))}
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
+        {/* Graphique d'activité */}
+        <DashboardCard 
+          title="Activité" 
+          className="overflow-hidden"
+          noPadding
+        >
+          <div className="px-5 py-4 border-b border-border bg-bg/30">
+            <div className="flex gap-4 text-[12.5px] text-ink2">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-primary" />
+                <span>Disponibilités détectées</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 bg-ink3 border-t border-dashed border-ink3" />
+                <span>Vérifications totales</span>
+              </div>
+            </div>
+          </div>
+          <div className="p-3">
+            <LineChart data={CHART_DATA} />
+          </div>
+        </DashboardCard>
+
+        {/* Mes suivis */}
+        <DashboardCard 
+          title="Mes suivis" 
+          right={<button className="text-[12.5px] font-medium text-primary hover:underline">Tout voir</button>}
+          noPadding
+        >
+          <div className="divide-y divide-border">
+            {TRACKINGS.map(t => (
+              <div key={t.id} className="flex items-center gap-3 p-3 px-4 hover:bg-bg/50 transition-colors">
+                <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+                  {t.name[0]}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-medium text-ink truncate">{t.name}</div>
+                  <div className="text-[11.5px] text-ink2 truncate">{t.source}</div>
+                </div>
+                <div className="shrink-0 px-2">
+                  <Sparkline 
+                    data={t.trend} 
+                    color={t.status === 'in_stock' ? '#16A34A' : t.status === 'out' ? '#DC2626' : '#94A3B8'} 
+                  />
+                </div>
+                <div className="shrink-0 w-20 flex justify-end">
+                  <StatusBadge status={t.status} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
+      </div>
+
+      {/* Activité récente */}
+      <DashboardCard 
+        title="Activité récente" 
+        className="mt-4"
+        right={
+          <button className="inline-flex items-center gap-1 text-[12.5px] text-ink2 hover:text-ink transition-colors">
+            <span>Voir l'historique</span>
+            <ArrowRight size={14} />
+          </button>
+        }
+        noPadding
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[600px]">
+            <thead>
+              <tr className="border-b border-border bg-bg/30">
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Quand</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Produit</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Source</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Changement</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Prix</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {RECENT_ACTIVITY.map(a => (
+                <tr key={a.id} className="hover:bg-bg/50 transition-colors">
+                  <td className="px-5 py-3 text-[13px] text-ink3 whitespace-nowrap">{a.time}</td>
+                  <td className="px-5 py-3 text-[13px] font-medium text-ink">{a.product}</td>
+                  <td className="px-5 py-3 text-[13px] text-ink2">{a.source}</td>
+                  <td className="px-5 py-3 text-[13px]">
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={a.from} />
+                      <ArrowRight size={12} className="text-ink3" />
+                      <StatusBadge status={a.to} />
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-[13px] font-mono text-ink text-right">{a.price}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </DashboardCard>
     </DashboardLayout>
   )
 }

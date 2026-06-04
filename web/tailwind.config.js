@@ -17,7 +17,10 @@ export default {
         ink2:      '#64748B',
         ink3:      '#94A3B8',
         borderStr: '#CBD5E1',
-        error:     '#DC2626',
+        error: {
+          DEFAULT: '#DC2626',
+          soft:    '#FEE2E2',
+        },
         muted:     '#F1F5F9',
 
         /* Core Palette */
@@ -65,6 +68,8 @@ export default {
           hover: '#B91C1C',     /* Darker Scarlet */
         },
         warning: {
+          DEFAULT: '#F59E0B',
+          soft: '#FEF3C7',
           text: '#F59E0B',      /* Golden Orange */
           bg: '#FEF3C7',        /* Lemon Chiffon */
         },
@@ -83,6 +88,14 @@ export default {
           grid: '#1E293B',         /* Deep Space Blue */
           border: '#334155',       /* Charcoal Blue */
         }
+      },
+      borderRadius: {
+        DEFAULT: '8px',
+        lg: '12px',
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(15,23,42,.04)',
+        md: '0 4px 12px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04)',
       },
     },
   },
