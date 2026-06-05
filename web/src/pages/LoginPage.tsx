@@ -81,7 +81,7 @@ function LoginPage() {
           required
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          right={<Link to="/forgot-password" title="Fonctionnalité à venir" className="text-[12.5px] font-medium text-primary">Mot de passe oublié ?</Link>}
+          right={<Link to="/forgot-password" className="text-[12.5px] font-medium text-primary">Mot de passe oublié ?</Link>}
         />
         <button 
           disabled={isLoading}

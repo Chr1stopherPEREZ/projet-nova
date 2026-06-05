@@ -15,6 +15,10 @@ import AdminSiteProfilesPage from './pages/AdminSiteProfilesPage'
 import NotificationsPage from './pages/NotificationsPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ForgotPasswordSentPage from './pages/ForgotPasswordSentPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import ResetPasswordSuccessPage from './pages/ResetPasswordSuccessPage'
 import ProtectedRoute from './components/ProtectedRoute'
 import { csrfBootstrap } from './api/client'
 
@@ -64,6 +68,10 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/forgot-password/sent" element={<ForgotPasswordSentPage />} />
+      <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+      <Route path="/reset-password/success" element={<ResetPasswordSuccessPage />} />
       <Route
         path="/dashboard"
         element={

@@ -3,9 +3,19 @@ import { Mail, List, RefreshCw } from 'lucide-react';
 
 interface AuthShellProps {
   children: ReactNode;
+  step?: 'request' | 'sent' | 'reset' | 'done';
 }
 
-export function AuthShell({ children }: AuthShellProps) {
+const STEPS: { id: NonNullable<AuthShellProps['step']>; label: string }[] = [
+  { id: 'request', label: 'Demande' },
+  { id: 'sent',    label: 'E-mail' },
+  { id: 'reset',   label: 'Nouveau mot de passe' },
+  { id: 'done',    label: 'Confirmation' },
+];
+
+export function AuthShell({ children, step }: AuthShellProps) {
+  const currentIdx = step ? STEPS.findIndex(s => s.id === step) : -1;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 h-[100dvh] min-h-[100dvh] overflow-hidden bg-surface font-sans text-ink antialiased">
       {/* Colonne gauche */}
@@ -16,6 +26,22 @@ export function AuthShell({ children }: AuthShellProps) {
         </div>
 
         <div className="w-full max-w-[380px] my-auto mx-auto">
+          {step && (
+            <div className="mb-7">
+              <div className="flex gap-1.5 mb-2.5">
+                {STEPS.map((s, i) => (
+                  <div 
+                    key={s.id} 
+                    className="flex-1 h-[3px] rounded-[2px]"
+                    style={{ background: i <= currentIdx ? 'var(--primary, #2563EB)' : 'var(--border, #E2E8F0)' }} 
+                  />
+                ))}
+              </div>
+              <div className="text-xs text-ink2">
+                Étape {currentIdx + 1} sur 4 · {STEPS[currentIdx].label}
+              </div>
+            </div>
+          )}
           {children}
         </div>
 
