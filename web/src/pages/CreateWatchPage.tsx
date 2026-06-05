@@ -1,669 +1,206 @@
-import { useState, useMemo } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import DashboardLayout from '../components/layout/DashboardLayout'
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Alert, PageContainer } from '../components/ui'
-import { apiFetch } from '../api/client'
-import { Plus, ArrowLeft, Search, Loader2, CheckCircle2 } from 'lucide-react'
-
-/* Types pour le preview des variantes */
-/**
- * Variante de produit telle que renvoyée par le backend (Preview).
- * Correspond à `VariantInfo` côté API.
- */
-interface VariantInfo {
-  variant_sku: string
-  color: string | null
-  size: string | null
-  available: boolean | null
-  meta: Record<string, unknown> | null
-}
+import { useState, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Check, Mail } from 'lucide-react';
+import DashboardLayout from '../components/layout/DashboardLayout';
+import { StatusBadge } from '../components/ui/DashboardUI';
 
 /**
- * Réponse de l'endpoint `POST /watches/preview`.
- * Utilisée pour afficher les options et sélectionner une variante (Shopify/Nike).
- */
-interface PreviewResponse {
-  title: string | null
-  source: string
-  variants: VariantInfo[]
-  debug_info?: {
-    error?: string
-    warning?: string
-    http_status?: number
-    next_data_keys?: string[]
-    experimental?: boolean
-  } | null
-}
-
-/* Étapes du formulaire */
-type FormStep = 'url' | 'variants' | 'confirm'
-
-/**
- * Page de création d'un suivi (Lot 7).
- * - Analyse une URL produit (Preview)
- * - Affiche les options de variantes (Shopify) et permet une sélection stricte
- * - Envoie `variant_selector`/`variant_meta` au backend lors de la création
+ * CreateWatchPage - Nouveau suivi (V2)
  */
 export default function CreateWatchPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const [url, setUrl] = useState('https://cassiopee-bougie.fr/products/coffret-3-bougies-solstice');
+  const [name, setName] = useState('');
+  const [freq, setFreq] = useState('30 min');
   
-  const [url, setUrl] = useState('')
-  const [label, setLabel] = useState('')
-  const [step, setStep] = useState<FormStep>('url')
-  
-  const [preview, setPreview] = useState<PreviewResponse | null>(null)
-  const [analyzing, setAnalyzing] = useState(false)
-  
-  /* Sélections Shopify */
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({})
-  
-  /* Sélection de variante */
-  const [selectedColor, setSelectedColor] = useState<string | null>(null)
-  const [selectedSize, setSelectedSize] = useState<string | null>(null)
-  const [selectedVariant, setSelectedVariant] = useState<VariantInfo | null>(null)
-  
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [noVariantsWarning, setNoVariantsWarning] = useState(false)
-  /* Fallback global quand l'extraction des variantes est impossible (bloqué ou non supporté).
-     Prépare l'ajout d'autres sources (warning agnostique de la plateforme). */
-  const [confirmGlobalMode, setConfirmGlobalMode] = useState(false)
+  /* Note: La logique de preview réelle (apiFetch('/watches/preview'))
+  est mise de côté pour l'intégration visuelle V2. */
+  const mockPreview = {
+    name: 'Coffret 3 bougies « Solstice »',
+    source: 'Cassiopée Bougie',
+    status: 'out',
+    price: '59,00 €',
+    thumb: 'CB'
+  };
 
-  /* Extraire les couleurs uniques depuis les variantes */
-  const uniqueColors = useMemo(() => {
-    if (!preview?.variants) return []
-    const colorsMap = new Map<string, { label: string; colorCode: string | null }>()
-    
-    for (const v of preview.variants) {
-      const colorKey = v.color || 'default'
-      if (!colorsMap.has(colorKey)) {
-        colorsMap.set(colorKey, {
-          label: v.color || 'Couleur par défaut',
-          colorCode: v.meta?.colorCode as string | null,
-        })
-      }
-    }
-    return Array.from(colorsMap.entries()).map(([key, value]) => ({
-      key,
-      ...value,
-    }))
-  }, [preview])
-
-  /* Extraire les tailles disponibles pour la couleur sélectionnée */
-  const availableSizes = useMemo(() => {
-    if (!preview?.variants || !selectedColor) return []
-    
-    return preview.variants
-      .filter(v => (v.color || 'default') === selectedColor && v.size)
-      .map(v => ({
-        size: v.size!,
-        available: v.available,
-        variant_sku: v.variant_sku,
-      }))
-  }, [preview, selectedColor])
-
-  /* Extraire les options Shopify et leurs valeurs */
-  const shopifyOptions = useMemo(() => {
-    if (preview?.source !== 'shopify' || !preview.variants) return []
-    
-    const optionsMap: Record<string, Set<string>> = {}
-    preview.variants.forEach(v => {
-      const vOptions = (v.meta?.options as Record<string, string>) || {}
-      Object.entries(vOptions).forEach(([name, value]) => {
-        if (!optionsMap[name]) optionsMap[name] = new Set()
-        optionsMap[name].add(value)
-      })
-    })
-    
-    return Object.entries(optionsMap).map(([name, values]) => ({
-      name,
-      values: Array.from(values)
-    }))
-  }, [preview])
-
-  /* Trouver la variante Shopify correspondante aux options sélectionnées */
-  const matchedShopifyVariant = useMemo(() => {
-    if (preview?.source !== 'shopify' || !preview.variants) return null
-    
-    return preview.variants.find(v => {
-      const vOptions = (v.meta?.options as Record<string, string>) || {}
-      return Object.entries(selectedOptions).every(([name, value]) => vOptions[name] === value)
-    }) || null
-  }, [preview, selectedOptions])
-
-  /* Analyser l'URL pour obtenir les variantes */
-  const handleAnalyze = async () => {
-    if (!url.trim()) {
-      setError("L'URL est obligatoire")
-      return
-    }
-
-    try {
-      setAnalyzing(true)
-      setError(null)
-      setPreview(null)
-      setSelectedColor(null)
-      setSelectedSize(null)
-      setSelectedVariant(null)
-      /* Réinitialiser les options Shopify lors d'une nouvelle analyse pour éviter les sélections obsolètes entre produits. */
-      setSelectedOptions({})
-
-      const data = await apiFetch<PreviewResponse>('/watches/preview', {
-        method: 'POST',
-        body: JSON.stringify({ url: url.trim() }),
-      })
-
-      setPreview(data)
-      
-      /* Pré-remplir le label avec le titre si disponible */
-      if (data.title && !label) {
-        setLabel(data.title)
-      }
-      
-      if (data.variants.length > 0) {
-        setStep('variants')
-        setNoVariantsWarning(false)
-        
-        /* Auto-sélection si une seule option par catégorie pour Shopify */
-        if (data.source === 'shopify') {
-          const initialOptions: Record<string, string> = {}
-          const optionsMap: Record<string, Set<string>> = {}
-          data.variants.forEach(v => {
-            const vOptions = (v.meta?.options as Record<string, string>) || {}
-            Object.entries(vOptions).forEach(([name, value]) => {
-              if (!optionsMap[name]) optionsMap[name] = new Set()
-              optionsMap[name].add(value)
-            })
-          })
-          Object.entries(optionsMap).forEach(([name, values]) => {
-            if (values.size === 1) {
-              initialOptions[name] = Array.from(values)[0]
-            }
-          })
-          setSelectedOptions(initialOptions)
-        }
-      } else if (data.source === 'nike' || data.source === 'shopify') {
-        /* Fallback source connue mais sans variantes détectées - afficher avertissement */
-        setNoVariantsWarning(true)
-        setConfirmGlobalMode(false)
-        /* Rester sur l'étape URL pour afficher l'avertissement */
-      } else {
-        /* Site générique sans variantes - passer directement à la confirmation */
-        setNoVariantsWarning(false)
-        setStep('confirm')
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur lors de l'analyse")
-    } finally {
-      setAnalyzing(false)
-    }
-  }
-
-  /* Sélection d'une couleur */
-  const handleColorSelect = (colorKey: string) => {
-    setSelectedColor(colorKey)
-    setSelectedSize(null)
-    setSelectedVariant(null)
-    
-    /* Si pas de tailles pour cette couleur, sélectionner la première variante correspondante */
-    const variants = preview?.variants.filter(v => (v.color || 'default') === colorKey) || []
-    if (variants.length === 1 || variants.every(v => !v.size)) {
-      /* Une seule variante ou variantes sans tailles → sélectionner directement */
-      setSelectedVariant(variants[0])
-    }
-  }
-
-  /* Sélection d'une taille */
-  const handleSizeSelect = (size: string) => {
-    setSelectedSize(size)
-    
-    const variant = preview?.variants.find(
-      v => (v.color || 'default') === selectedColor && v.size === size
-    )
-    setSelectedVariant(variant || null)
-  }
-
-  /* Sélection d'une option Shopify */
-  const handleOptionSelect = (name: string, value: string) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [name]: value
-    }))
-  }
-
-  /* Valider la sélection de variante */
-  const handleConfirmVariant = () => {
-    const isShopify = preview?.source === 'shopify'
-    const variant = isShopify ? matchedShopifyVariant : selectedVariant
-    
-    if (preview?.variants.length && !variant) {
-      setError(isShopify ? 'Veuillez sélectionner toutes les options' : 'Veuillez sélectionner une variante')
-      return
-    }
-    setStep('confirm')
-  }
-
-  /* Créer le suivi */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!url.trim()) {
-      setError("L'URL est obligatoire")
-      return
-    }
-
-    try {
-      setLoading(true)
-      setError(null)
-
-      const body: Record<string, unknown> = {
-        url: url.trim(),
-        label: label.trim() || null,
-      }
-
-      /* Ajouter les infos de variante si sélectionnée */
-      const isShopify = preview?.source === 'shopify'
-      const variant = isShopify ? matchedShopifyVariant : selectedVariant
-
-      if (variant) {
-        body.variant_sku = variant.variant_sku
-        if (isShopify) {
-          body.variant_selector = selectedOptions
-          body.variant_meta = {
-            title: preview?.title,
-            source: 'shopify',
-            options: variant.meta?.options
-          }
-        } else {
-          body.variant_meta = {
-            color: variant.color,
-            size: variant.size,
-            colorCode: variant.meta?.colorCode,
-            source: preview?.source,
-          }
-        }
-      }
-
-      await apiFetch('/watches', {
-        method: 'POST',
-        body: JSON.stringify(body),
-      })
-
-      navigate('/watches', { state: { success: 'Suivi créé avec succès !' } })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erreur lors de la création')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  /* Revenir à l'étape précédente */
-  const handleBack = () => {
-    if (step === 'confirm' && preview?.variants.length) {
-      setStep('variants')
-    } else {
-      setStep('url')
-      setPreview(null)
-      /* Réinitialiser les états de sélection lors du retour à l'étape URL */
-      setSelectedOptions({})
-      setSelectedColor(null)
-      setSelectedSize(null)
-      setSelectedVariant(null)
-    }
-  }
+  const handleCreate = (e: FormEvent) => {
+    e.preventDefault();
+    /* Simulation POST /watches */
+    navigate('/watches');
+  };
 
   return (
-    <DashboardLayout>
-      <PageContainer
-        title="Créer un suivi"
-        description="Ajoutez un nouveau produit à surveiller"
-      >
-        <div className="mb-4">
-          <Link to="/watches" className="inline-flex items-center text-sm text-gray-600 hover:text-primary-600">
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Retour à la liste
-          </Link>
+    <DashboardLayout breadcrumb={["Mes suivis", "Nouveau suivi"]}>
+      <div className="mb-7">
+        <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">Nouveau suivi</h1>
+        <p className="text-[13.5px] text-ink2 mt-1">Collez l'URL d'un produit. Nova vérifiera régulièrement sa disponibilité et vous alertera par e-mail.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 max-w-[1000px]">
+        {/* Formulaire (Gauche) */}
+        <div className="space-y-5">
+          {/* 1. URL */}
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <h3 className="text-[14px] font-semibold text-ink mb-1">1. URL du produit</h3>
+            <p className="text-[12.5px] text-ink2 mb-4">Saisissez l'adresse complète de la page produit.</p>
+            <div className="space-y-3.5">
+              <div>
+                <label className="block text-[13px] font-medium text-ink mb-1.5">URL</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="url"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="h-[38px] flex-1 rounded-md border border-border bg-surface px-3 text-[13.5px] outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/15 transition-all"
+                    placeholder="https://..."
+                  />
+                  <button className="btn ghost border-border">Analyser</button>
+                </div>
+              </div>
+
+              {/* Aperçu après analyse (Mock) */}
+              <div className="flex items-center gap-3.5 p-3.5 bg-bg border border-border rounded-lg">
+                <div className="w-12 h-12 rounded-md bg-surface border border-border flex items-center justify-center text-[11px] font-semibold text-ink3 shrink-0">
+                  {mockPreview.thumb}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-0.5">
+                    <span className="font-medium text-ink text-[13.5px] truncate">{mockPreview.name}</span>
+                    <StatusBadge status={mockPreview.status} />
+                  </div>
+                  <div className="flex items-center gap-3 text-[12.5px] text-ink2">
+                    <span>{mockPreview.source}</span>
+                    <span className="w-1 h-1 rounded-full bg-border-strong" />
+                    <span className="font-mono text-ink">{mockPreview.price}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Détails */}
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <h3 className="text-[14px] font-semibold text-ink mb-1">2. Détails</h3>
+            <p className="text-[12.5px] text-ink2 mb-4">Personnalisez l'affichage de ce suivi.</p>
+            <div>
+              <label className="block text-[13px] font-medium text-ink mb-1.5">
+                Nom personnalisé <span className="text-ink3 font-normal ml-1">(optionnel)</span>
+              </label>
+              <input 
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-[38px] w-full rounded-md border border-border bg-surface px-3 text-[13.5px] outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/15 transition-all"
+                placeholder="ex. Coffret Solstice — Cadeau Noël"
+              />
+              <p className="text-[12.5px] text-ink2 mt-1.5">Laissez vide pour utiliser le nom détecté automatiquement.</p>
+            </div>
+          </div>
+
+          {/* 3. Fréquence */}
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <h3 className="text-[14px] font-semibold text-ink mb-1">3. Fréquence de vérification</h3>
+            <p className="text-[12.5px] text-ink2 mb-4">À quel rythme Nova doit-il vérifier ce produit ?</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {[
+                { val: '15 min', desc: 'Vérification fréquente' },
+                { val: '30 min', desc: 'Recommandé' },
+                { val: '1 h', desc: 'Vérification légère' },
+              ].map((opt) => (
+                <label 
+                  key={opt.val}
+                  className={`relative flex flex-col p-3 rounded-lg border cursor-pointer transition-all ${
+                    freq === opt.val ? 'border-primary bg-primary-soft' : 'border-border bg-surface hover:border-border-strong'
+                  }`}
+                >
+                  <input 
+                    type="radio" 
+                    name="freq" 
+                    className="sr-only" 
+                    checked={freq === opt.val} 
+                    onChange={() => setFreq(opt.val)}
+                  />
+                  <span className={`text-[14px] font-semibold ${freq === opt.val ? 'text-primary' : 'text-ink'}`}>{opt.val}</span>
+                  <span className="text-[11.5px] text-ink2">{opt.desc}</span>
+                  {freq === opt.val && (
+                    <div className="absolute top-2.5 right-2.5 w-3.5 h-3.5 bg-primary rounded-full flex items-center justify-center text-white">
+                      <Check size={10} strokeWidth={3} />
+                    </div>
+                  )}
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* 4. Notification */}
+          <div className="bg-surface border border-border rounded-lg p-5">
+            <h3 className="text-[14px] font-semibold text-ink mb-1">4. Notification</h3>
+            <p className="text-[12.5px] text-ink2 mb-4">Vous serez prévenu par e-mail dès qu'un changement de disponibilité est détecté.</p>
+            <div className="flex items-center gap-3 p-3 bg-bg border border-border rounded-lg">
+              <div className="w-8 h-8 rounded-md bg-surface border border-border flex items-center justify-center text-ink2">
+                <Mail size={14} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-medium text-ink">E-mail</div>
+                <div className="text-[12.5px] text-ink2 truncate">christopher@example.test</div>
+              </div>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-soft text-success text-[12px] font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                Activé
+              </span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2.5 pt-2">
+            <button onClick={() => navigate('/watches')} className="btn ghost px-6">Annuler</button>
+            <button onClick={handleCreate} className="btn primary px-8">Créer le suivi</button>
+          </div>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Plus className="h-5 w-5 text-primary-600" />
-              Nouveau suivi
-              {step !== 'url' && (
-                <span className="text-sm font-normal text-gray-500 ml-2">
-                  {step === 'variants' ? '— Sélection de la variante' : '— Confirmation'}
-                </span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <Alert variant="danger" className="mb-4">
-                {error}
-              </Alert>
-            )}
-
-            {/* Étape 1: URL + Analyser */}
-            {step === 'url' && (
-              <div className="space-y-4">
-                <Input
-                  label="URL du produit"
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://www.nike.com/fr/t/..."
-                  required
-                />
-
-                <Input
-                  label="Nom (optionnel)"
-                  type="text"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                  placeholder="Mon produit préféré"
-                />
-
-                {/* Fallback global quand l'extraction des variantes est impossible.
-                    Prépare l'ajout d'autres sources (warning agnostique). */}
-                {noVariantsWarning && preview && (
-                  <Alert variant="warning" className="mb-4">
-                    <div className="space-y-3">
-                      <p className="font-medium">
-                        ⚠️ Impossible d'extraire les variantes
-                      </p>
-                      <p className="text-sm">
-                        La structure de la page ou une protection anti-bot empêche la détection des options (coloris/tailles).
-                      </p>
-                      <div className="text-xs space-y-1">
-                        <p className="text-gray-600 font-medium">Source détectée : {preview.source}</p>
-                        {preview.debug_info?.warning && (
-                          <p className="text-gray-500">
-                            Détail: {preview.debug_info.warning}
-                          </p>
-                        )}
-                      </div>
-                      <p className="text-sm">
-                        Vous pouvez créer un suivi en <strong>mode global</strong> (moins précis : Nova surveillera tout le produit, pas une variante spécifique).
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <input
-                          type="checkbox"
-                          id="confirmGlobal"
-                          checked={confirmGlobalMode}
-                          onChange={(e) => setConfirmGlobalMode(e.target.checked)}
-                          className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
-                        />
-                        <label htmlFor="confirmGlobal" className="text-sm text-gray-700">
-                          Je comprends et je souhaite créer en mode global
-                        </label>
-                      </div>
-                    </div>
-                  </Alert>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  {/* Bouton Analyser (masqué si l'avertissement de variantes est affiché) */}
-                  {!noVariantsWarning && (
-                    <Button 
-                      type="button" 
-                      onClick={handleAnalyze} 
-                      isLoading={analyzing}
-                      disabled={analyzing || !url.trim()}
-                    >
-                      {analyzing ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Analyse en cours...
-                        </>
-                      ) : (
-                        <>
-                          <Search className="h-4 w-4 mr-2" />
-                          Analyser le produit
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  
-                  {/* Boutons si avertissement de variantes - propose le mode global ou de réessayer */}
-                  {noVariantsWarning && (
-                    <>
-                      <Button 
-                        type="button" 
-                        onClick={() => setStep('confirm')}
-                        disabled={!confirmGlobalMode}
-                      >
-                        Créer en mode global
-                      </Button>
-                      <Button 
-                        type="button" 
-                        variant="secondary"
-                        onClick={() => {
-                          setNoVariantsWarning(false)
-                          setConfirmGlobalMode(false)
-                          setPreview(null)
-                        }}
-                      >
-                        Réessayer
-                      </Button>
-                    </>
-                  )}
-                  
-                  <Link to="/watches">
-                    <Button type="button" variant="secondary" disabled={analyzing}>
-                      Annuler
-                    </Button>
-                  </Link>
-                </div>
+        {/* Aside Aperçu (Droite) */}
+        <aside className="hidden lg:block">
+          <div className="bg-surface border border-border rounded-lg p-5 sticky top-7">
+            <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-ink3 mb-3">Aperçu</div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-11 h-11 rounded-md bg-muted border border-border flex items-center justify-center text-[10px] font-semibold text-ink3">
+                {mockPreview.thumb}
               </div>
-            )}
-
-            {/* Étape 2: Sélection de variante */}
-            {step === 'variants' && preview && (
-              <div className="space-y-6">
-                {preview.title && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-900">{preview.title}</h3>
-                    <p className="text-sm text-gray-500">Source: {preview.source}</p>
-                    {preview.debug_info?.experimental && (
-                      <Alert variant="warning" className="mt-2 text-xs py-2">
-                        {preview.debug_info.warning || "Mode expérimental"}
-                      </Alert>
-                    )}
-                  </div>
-                )}
-
-                {/* UI Shopify: Sélections multiples par options */}
-                {preview.source === 'shopify' && shopifyOptions.map((opt) => (
-                  <div key={opt.name}>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {opt.name}
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {opt.values.map((val) => {
-                        /* Pour indiquer si cette valeur spécifique est dispo (simplifié) */
-                        /* On pourrait faire un calcul plus complexe basé sur les autres sélections */
-                        return (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => handleOptionSelect(opt.name, val)}
-                            className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                              selectedOptions[opt.name] === val
-                                ? 'bg-primary-100 border-primary-500 text-primary-700'
-                                : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                            }`}
-                          >
-                            {val}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                ))}
-
-                {/* UI Nike: Coloris + Tailles (existant) */}
-                {preview.source === 'nike' && (
-                  <>
-                    {/* Sélection couleur */}
-                    {uniqueColors.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Coloris
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {uniqueColors.map((color) => (
-                            <button
-                              key={color.key}
-                              type="button"
-                              onClick={() => handleColorSelect(color.key)}
-                              className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                                selectedColor === color.key
-                                  ? 'bg-primary-100 border-primary-500 text-primary-700'
-                                  : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                              }`}
-                            >
-                              {color.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Sélection taille */}
-                    {selectedColor && availableSizes.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Taille
-                        </label>
-                        <div className="flex flex-wrap gap-2">
-                          {availableSizes.map((item) => (
-                            <button
-                              key={item.variant_sku}
-                              type="button"
-                              onClick={() => handleSizeSelect(item.size)}
-                              className={`px-4 py-2 rounded-lg border text-sm transition-colors ${
-                                selectedSize === item.size
-                                  ? 'bg-primary-100 border-primary-500 text-primary-700'
-                                  : item.available === false
-                                  ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                                  : 'bg-white border-gray-300 text-gray-700 hover:border-gray-400'
-                              }`}
-                              disabled={item.available === false}
-                              title={item.available === false ? 'Indisponible' : undefined}
-                            >
-                              {item.size}
-                              {item.available === false && ' (indispo)'}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {/* Résumé de la sélection */}
-                {(preview.source === 'shopify' ? matchedShopifyVariant : selectedVariant) && (
-                  <div className="bg-success-50 p-4 rounded-lg flex items-start gap-3">
-                    <CheckCircle2 className="h-5 w-5 text-success-600 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-success-800">Variante sélectionnée</p>
-                      <p className="text-sm text-success-700">
-                        {preview.source === 'shopify' ? (
-                          Object.entries(selectedOptions).map(([k, v]) => `${k}: ${v}`).join(' — ')
-                        ) : (
-                          <>
-                            {selectedVariant?.color}
-                            {selectedVariant?.size && ` — Taille ${selectedVariant.size}`}
-                          </>
-                        )}
-                      </p>
-                      <p className="text-xs text-success-600 mt-1">
-                        SKU: {(preview.source === 'shopify' ? matchedShopifyVariant : selectedVariant)?.variant_sku}
-                      </p>
-                      {(preview.source === 'shopify' ? matchedShopifyVariant : selectedVariant)?.available === false && (
-                         <p className="text-xs text-danger-600 font-bold mt-1">
-                           Actuellement en rupture de stock
-                         </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    onClick={handleConfirmVariant}
-                    disabled={preview.source === 'shopify' ? !matchedShopifyVariant : !selectedVariant}
-                  >
-                    Continuer
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={handleBack}>
-                    Retour
-                  </Button>
-                </div>
+              <div className="min-w-0">
+                <div className="text-[13.5px] font-medium text-ink truncate">{name || mockPreview.name}</div>
+                <div className="text-[12px] text-ink2">{mockPreview.source}</div>
               </div>
-            )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[12.5px]">
+              <div>
+                <div className="text-ink2 mb-1">Statut détecté</div>
+                <StatusBadge status={mockPreview.status} />
+              </div>
+              <div>
+                <div className="text-ink2 mb-1">Prix</div>
+                <div className="font-mono font-medium text-ink">{mockPreview.price}</div>
+              </div>
+              <div>
+                <div className="text-ink2 mb-1">Fréquence</div>
+                <div className="text-ink">{freq}</div>
+              </div>
+              <div>
+                <div className="text-ink2 mb-1">Alerte</div>
+                <div className="text-ink">E-mail</div>
+              </div>
+            </div>
 
-            {/* Étape 3: Confirmation */}
-            {step === 'confirm' && (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                  <p className="text-sm text-gray-600">
-                    <span className="font-medium">URL:</span> {url}
-                  </p>
-                  {label && (
-                    <p className="text-sm text-gray-600">
-                      <span className="font-medium">Nom:</span> {label}
-                    </p>
-                  )}
-                  {selectedVariant || matchedShopifyVariant ? (
-                    <div className="pt-2 border-t border-gray-200 mt-2">
-                      <p className="text-sm font-medium text-gray-700">Variante surveillée:</p>
-                      <p className="text-sm text-gray-600">
-                        {preview?.source === 'shopify' ? (
-                          Object.entries(selectedOptions).map(([k, v]) => `${k}: ${v}`).join(' — ')
-                        ) : (
-                          <>
-                            {selectedVariant?.color}
-                            {selectedVariant?.size && ` — Taille ${selectedVariant.size}`}
-                          </>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        SKU: {(preview?.source === 'shopify' ? matchedShopifyVariant : selectedVariant)?.variant_sku}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-warning-600 pt-2 border-t border-gray-200 mt-2">
-                      ⚠️ Mode global: surveillance de tout le produit (moins précis)
-                    </p>
-                  )}
-                </div>
-
-                <Input
-                  label="Nom du suivi"
-                  type="text"
-                  value={label}
-                  onChange={(e) => setLabel(e.target.value)}
-                  placeholder="Mon produit préféré"
-                />
-
-                <div className="flex gap-3 pt-4">
-                  <Button type="submit" isLoading={loading}>
-                    Créer le suivi
-                  </Button>
-                  <Button type="button" variant="secondary" onClick={handleBack} disabled={loading}>
-                    Retour
-                  </Button>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </PageContainer>
+            <hr className="my-4 border-border" />
+            
+            <p className="text-[12px] text-ink2 leading-relaxed">
+              Nova vérifiera ce produit toutes les {freq.replace(' ', '')}. Vous recevrez un e-mail dès qu'il sera détecté comme disponible.
+            </p>
+          </div>
+        </aside>
+      </div>
     </DashboardLayout>
-  )
+  );
 }
 
 /* CreateWatchPage.tsx */

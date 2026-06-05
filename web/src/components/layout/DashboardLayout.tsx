@@ -7,11 +7,12 @@ import { authService } from '../../api/client'
 interface DashboardLayoutProps {
   children: ReactNode
   title?: string
+  breadcrumb?: string[]
   subtitle?: ReactNode /* Pour compatibilité pages hors périmètre */
   topbarAction?: ReactNode
 }
 
-export default function DashboardLayout({ children, title, topbarAction }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, title, breadcrumb, topbarAction }: DashboardLayoutProps) {
   const navigate = useNavigate()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
@@ -39,7 +40,9 @@ export default function DashboardLayout({ children, title, topbarAction }: Dashb
         {/* Topbar */}
         <Topbar 
           title={title || "Nova"} 
+          breadcrumb={breadcrumb}
           action={topbarAction} 
+          onMenuClick={() => setIsSidebarOpen(true)}
         />
 
         {/* Content - C'est ici que ça scrolle */}
