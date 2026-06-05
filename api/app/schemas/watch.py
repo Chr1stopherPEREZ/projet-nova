@@ -47,7 +47,7 @@ class WatchOut(BaseModel):
     url: str
     label: str | None = None
     status: str  # ACTIVE ou PAUSED (correspond à watch_status dans le modèle)
-    stock_state: str  # IN_STOCK, OUT_OF_STOCK, UNKNOWN, BROKEN
+    stock_state: str  # IN_STOCK, OUT_OF_STOCK, SOLD_OUT, UNKNOWN, BROKEN
     last_checked_at: datetime | None = None
     variant_sku: str | None = None
     variant_selector: dict[str, Any] | None = None

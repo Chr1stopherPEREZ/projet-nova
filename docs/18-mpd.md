@@ -6,7 +6,7 @@
 ```sql
 CREATE TYPE user_role AS ENUM ('USER', 'ADMIN');
 CREATE TYPE watch_status AS ENUM ('ACTIVE', 'PAUSED');
-CREATE TYPE stock_state AS ENUM ('IN_STOCK', 'OUT_OF_STOCK', 'UNKNOWN', 'BROKEN');
+CREATE TYPE stock_state AS ENUM ('IN_STOCK', 'OUT_OF_STOCK', 'SOLD_OUT', 'UNKNOWN', 'BROKEN');
 ```
 
 ## Tables

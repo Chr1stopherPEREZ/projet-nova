@@ -21,6 +21,7 @@ class StockState(str, PyEnum):
     """État du stock détecté."""
     IN_STOCK = "IN_STOCK"
     OUT_OF_STOCK = "OUT_OF_STOCK"
+    SOLD_OUT = "SOLD_OUT"
     UNKNOWN = "UNKNOWN"
     BROKEN = "BROKEN"
 

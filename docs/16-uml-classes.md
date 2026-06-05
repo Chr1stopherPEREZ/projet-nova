@@ -107,3 +107,13 @@ classDiagram
   ScraperService --> ProfileEngine
   SchedulerService --> NotificationService
 ```
+
+## Énumérations (Types)
+- **StockState** :
+    - `IN_STOCK` : En stock.
+    - `OUT_OF_STOCK` : Rupture de stock temporaire.
+    - `SOLD_OUT` : Épuisé (indisponibilité plus définitive).
+    - `UNKNOWN` : État inconnu (erreur de scraping).
+    - `BROKEN` : Lien cassé ou structure de page modifiée.
+- **WatchStatus** : `ACTIVE`, `PAUSED`.
+- **UserRole** : `USER`, `ADMIN`.

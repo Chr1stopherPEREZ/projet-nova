@@ -16,3 +16,8 @@
 - `watches(watch_status, next_check_at)`
 - `site_profiles(domain_pattern)`
 - `watch_checks(watch_id, checked_at desc)`
+
+## Domaines et Énumérations
+- **stock_state** : {IN_STOCK, OUT_OF_STOCK, SOLD_OUT, UNKNOWN, BROKEN}
+- **watch_status** : {ACTIVE, PAUSED}
+- **user_role** : {USER, ADMIN}

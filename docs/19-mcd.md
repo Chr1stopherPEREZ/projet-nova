@@ -55,3 +55,10 @@ classDiagram
     Watch "1" -- "0..*" WatchCheck : historique
     SiteProfile "1" -- "0..*" Watch : définit
 ```
+
+## Description des États de Stock (StockState)
+- **IN_STOCK** : Le produit est disponible à l'achat.
+- **OUT_OF_STOCK** : Le produit est momentanément indisponible (rupture de stock).
+- **SOLD_OUT** : Le produit est épuisé (indisponibilité définitive ou de longue durée).
+- **UNKNOWN** : L'état n'a pas pu être déterminé.
+- **BROKEN** : Le lien de suivi est invalide.
