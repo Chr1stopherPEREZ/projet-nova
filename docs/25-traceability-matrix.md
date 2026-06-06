@@ -12,16 +12,16 @@ Assurer la traçabilité entre les **User Stories**, les **Endpoints API**, les 
 | **US-01** Inscription | `POST /auth/register` | `users` | `test_register_*` | Écran register (Front), Swagger `/docs` |
 | **US-02** Connexion | `POST /auth/login` | `users` | `test_login_*` | Écran login (Front), Session établie (Cookie HttpOnly) |
 | **US-03** Déconnexion | `POST /auth/logout` | `users` | `test_logout_*` | Bouton logout (Front) |
-| **US-04** Reset Password | — | — | — | Prévu V2 |
-| **US-05** Créer un suivi | `POST /watches` | `watches`, `site_profiles` | `test_create_watch_*` | Formulaire ajout URL (Front), `/docs` |
-| **US-06** Voir mes suivis | `GET /watches` | `watches`, `watch_checks` | `test_list_watches_*` | Dashboard liste suivis (Front) |
-| **US-07** Pause / Reprise | `PATCH /watches/{id}` | `watches` | — | Bouton pause/resume (Front) |
-| **US-08** Suppression | `DELETE /watches/{id}` | `watches`, `watch_checks`, `notifications` | — | Bouton supprimer (Front) |
+| **US-04** Reset Password | `POST /auth/forgot-password` | — | — | UI intégrée / flux à finaliser |
+| **US-05** Créer un suivi | `POST /watches` | `watches`, `site_profiles` | `test_create_watch_*` | Formulaire (UI intégrée / API réelle) |
+| **US-06** Voir mes suivis | `GET /watches` | `watches`, `watch_checks` | `test_list_watches_*` | Liste API Réelle (Recherche, Filtres, Tri) |
+| **US-07** Pause / Reprise | `PATCH /watches/{id}` | `watches` | — | Bouton pause/resume (UI à brancher) |
+| **US-08** Suppression | `DELETE /watches/{id}` | `watches`, `watch_checks`, `notifications` | — | Bouton supprimer (UI à brancher) |
 | **US-09** Vérif auto | Worker: `run_cycle()` | `watches`, `watch_checks` | `test_run_check_*` | Logs worker, `docker compose logs worker` |
 | **US-10** Gestion erreurs | Worker: `process_watch()` | `watches`, `watch_checks` | `test_load_fixture_*` | Log `watch_check_failed`, statut BROKEN |
 | **US-11** Notifier retour stock | Worker + `NotificationService` | `watches`, `notifications` | `test_run_job_email_*` | **Email Mailhog**, log `notification_sent` |
 | **US-12** Anti-spam notifs | `NotificationService` | `notifications` | `test_run_job_no_email_*` | Relancer cycle → pas de 2e email |
-| **US-13** Liste profils | `GET /admin/stats/site-profiles` | `site_profiles` | — | Interface Admin (Front) |
+| **US-13** Liste profils | `GET /admin/stats/site-profiles` | `site_profiles` | — | Interface Admin (Implémenté V2) |
 | **US-14** Test profil URL | — | — | — | Prévu V2 |
 | **US-15** Accessibilité | — (Frontend) | — | — | Prévu V2 |
 | **US-16** Export / Suppression | — | — | — | Prévu V2 |
@@ -89,11 +89,10 @@ Assurer la traçabilité entre les **User Stories**, les **Endpoints API**, les 
 | Écran | US couverts |
 |-------|-------------|
 | Page Login / Register | US-01, US-02 |
-| Page Reset Password | Prévu V2 |
-| Dashboard utilisateur | US-06, US-07, US-08, US-17 |
-| Formulaire ajout watch | US-05 |
-| Interface Admin - Profils | US-13 |
-| Interface Admin - Métriques | US-18 |
+| Page Reset Password | US-04 | UI intégrée |
+| Dashboard utilisateur | US-06, US-07, US-08, US-17 | Liste RÉELLE branchée API (PostgreSQL) |
+| Formulaire ajout watch | US-05 | UI Intégrée (Branchement à finaliser) |
+| Détail d'un suivi | US-06, US-09, US-10 | UI Intégrée (Branchement à finaliser) |
 | Page Mon compte | Prévu V2 |
 
 ### Backend (endpoints via `/docs`)

@@ -21,42 +21,51 @@ Ce document décrit le déroulement idéal de la démonstration lors de la soute
 ## Étape 2 : Accès à l'application et Connexion
 1. Ouvrir le navigateur sur `http://localhost:3000`.
 2. Se connecter avec le compte de démonstration (seedé par défaut) :
-   - **Email** : `user@example.com`
-   - **Mot de passe** : `Test1234!`
-3. Arriver sur le Dashboard.
-   *Preuve : Interface propre, réactive et sécurisée.*
+   - **Email** : `user@nova.dev`
+   - **Mot de passe** : `Demo123456789`
+3. Arriver sur le Dashboard, puis aller sur "Mes suivis" pour voir les données réelles issues de PostgreSQL.
+   *Preuve : Interface propre, réactive et sécurisée, branchée sur l'API.*
 
-## Étape 3 : Création d'un suivi (Happy Path)
+## Étape 3 : Consultation des suivis (Données réelles)
+1. Aller sur "Mes suivis".
+2. Montrer les 5 produits Nova V2 issus de PostgreSQL.
+3. Montrer les boutiques réelles (L’Esprit Belle, Cassiopée Bougie, Terre de France).
+4. Utiliser la recherche (ex: taper "halo") pour filtrer la liste.
+5. Utiliser les filtres d'état (ex: cliquer sur "Épuisé" pour voir le Pull Brume en `SOLD_OUT`).
+6. Utiliser le tri et la pagination locale.
+   *Preuve : Liste fonctionnelle, performante et branchée sur la base de données.*
+
+## Étape 4 : Scénario cible à finaliser (Extensions prévues)
+Les fonctionnalités suivantes sont intégrées visuellement (Design Nova V2) mais le branchement complet à l'API est à finaliser :
+
+### 4.1 Création d'un suivi
 1. Cliquer sur "Ajouter un produit".
-2. Coller une URL Shopify fictive (ex: `https://test-shop.myshopify.com/products/t-shirt`).
-3. L'application récupère les informations (via le mock du parser).
-4. Sélectionner une variante (ex: Taille M).
-5. Valider la création.
-   *Preuve : Fluidité de l'UX et gestion des variantes.*
+2. Coller une URL Nova V2 (ex: `https://lesprit-belle.fr/products/lampe-halo`).
+3. L'UI montre le chargement (Simulation d'analyse).
+4. Sélectionner une variante si proposée.
+5. Valider la création (Action mockée côté front).
 
-## Étape 4 : Déclenchement d'un changement de stock (Simulation)
-1. Aller sur le détail du produit créé.
-2. Noter l'état actuel : **IN_STOCK** (car `FIXTURE_NAME` est `in_stock.html` par défaut).
-3. Simuler une rupture de stock en modifiant la variable d'environnement ou via un script dédié :
+### 4.2 Détail et Historique
+1. Cliquer sur un produit dans la liste pour accéder à `/watches/:id`.
+2. L'écran de détail Nova V2 s'affiche avec les graphiques de prix et l'historique (Données de démonstration).
+3. Montrer l'onglet "Historique" avec les lignes de check simulées.
+   *Preuve : Cohérence visuelle et préparation du terrain pour le branchement API final.*
+
+## Étape 5 : Déclenchement d'un changement de stock (Backend)
+Pour montrer la puissance du moteur Nova, déclencher un check depuis le terminal :
+1. Noter l'état actuel en base : **IN_STOCK** (car `FIXTURE_NAME` est `in_stock.html`).
+2. Simuler une rupture de stock via le script dédié :
    ```bash
-   # Option simple pour la démo: changer la fixture par défaut du container api
    docker exec -e CHECK_MODE=fixture -e FIXTURE_NAME=out_of_stock.html projet-nova-api-1 python -m app.scripts.trigger_check --watch-id <ID>
    ```
-   *(Note : Un bouton "Forcer vérification" dans l'UI peut aussi être utilisé si implémenté).*
-4. Actualiser la page ou attendre la notification.
-5. Constater le passage à l'état **OUT_OF_STOCK**.
-   *Preuve : Le moteur de détection fonctionne et réagit aux changements.*
-
-## Étape 5 : Consultation de l'historique et Notifications
-1. Aller dans l'onglet "Historique" du produit.
-2. Voir la nouvelle ligne de check avec le changement d'état.
-3. Ouvrir Mailhog : `http://localhost:8025`.
-4. Ouvrir l'email reçu indiquant le changement de stock.
-   *Preuve : Traçabilité complète et boucle de notification fonctionnelle.*
+3. Vérifier les logs du worker : `docker compose logs worker`.
+4. Constater le passage à l'état **OUT_OF_STOCK** en base de données.
+5. Ouvrir Mailhog (`http://localhost:8025`) pour voir l'email de notification.
+   *Preuve : Le moteur de détection et la notification peuvent être démontrés côté backend en mode fixture.*
 
 ## Étape 6 : Administration et Base de Données
-1. Accéder à la zone Admin (`/admin` ou via bouton).
-2. Montrer la liste globale des suivis.
+1. Accéder à la zone Admin (`/admin/dashboard`).
+2. Montrer les KPIs globaux (Mockés en V2).
 3. Retourner au terminal pour montrer la maîtrise de PostgreSQL :
    ```bash
    docker exec -it projet-nova-db-1 psql -U nova -d nova
@@ -66,6 +75,6 @@ Ce document décrit le déroulement idéal de la démonstration lors de la soute
    SELECT label, stock_state FROM watches;
    SELECT checked_at, stock_state FROM watch_checks ORDER BY checked_at DESC LIMIT 5;
    ```
-   *Preuve : Maîtrise des outils fondamentaux (SQL, terminal).*
+   *Preuve : Maîtrise des outils fondamentaux (SQL, terminal) et intégrité des données.*
 
 ---

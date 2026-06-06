@@ -25,28 +25,28 @@ docker compose ps
 ## 3. Scénario de Démonstration (User Story : "Retour en Stock")
 
 ### Étape A : Connexion (Profil User)
-1. Se connecter avec `user@example.com` / `password123`.
+1. Se connecter avec `user@nova.dev` / `Demo123456789`.
 2. Vérifier la redirection vers le Dashboard.
 
-### Étape B : Création d'un Suivi (Watch)
+### Étape B : Création d'un Suivi (Watch) - Scénario Cible
 1. Cliquer sur "Ajouter un produit".
-2. Saisir une URL Shopify (ex: `https://boutique-demo.myshopify.com/products/test-product`).
-3. Choisir une variante si proposée.
-4. Valider. Le produit apparaît dans la liste avec l'état `UNKNOWN`.
+2. Saisir une URL Nova (ex: `https://lesprit-belle.fr/products/lampe-halo`).
+3. Montrer l'UI de chargement et le choix de variante (UI intégrée).
+4. Note : Le branchement API complet pour la création est à finaliser dans ce lot.
 
-### Étape C : Simulation du Check (Scraping)
-1. Depuis le détail du produit, cliquer sur "Lancer la vérification".
-2. Le système interroge l'API Shopify (Mode Live).
-3. L'état passe à `OUT_OF_STOCK` ou `IN_STOCK` selon la disponibilité réelle.
+### Étape C : Simulation du Check (Backend / Fixtures)
+1. Depuis le terminal, déclencher une vérification forcée.
+2. Le système interroge la fixture configurée (Mode Fixture pour la stabilité démo).
+3. L'état passe à `OUT_OF_STOCK` ou `IN_STOCK` en base de données selon la fixture choisie.
 
 ### Étape D : Réception d'Alerte
 1. (Si transition vers IN_STOCK) : Ouvrir Mailhog.
 2. Vérifier la réception d'un email : "Produit disponible : [Nom du produit]".
 
 ## 4. Scénario Administration (Profil Admin)
-1. Se déconnecter et se reconnecter avec `admin@example.com` / `adminpassword`.
+1. Se déconnecter et se reconnecter avec `christopher@nova.dev` / `Demo123456789`.
 2. Accéder au dashboard Admin (`/admin`).
-3. Vérifier les statistiques globales : Nombre de comptes, Total de suivis, Domaine le plus surveillé (Nike/Shopify).
+3. Vérifier les statistiques globales : Nombre de comptes, Total de suivis, Domaine le plus surveillé (L’Esprit Belle, Terre de France).
 
 ## 5. Checklist Jury (Preuves à avoir prêtes)
 - [ ] **Code Source** : Montrer `api/app/core/security.py` (Argon2id + JWT).

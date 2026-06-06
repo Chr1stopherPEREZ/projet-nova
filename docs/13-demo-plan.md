@@ -13,28 +13,28 @@ Ce script de démonstration permet de valider le fonctionnement complet de Nova 
 
 ## 00:00 - Connexion Utilisateur (USER)
 - **Action**: Ouvrir `http://localhost:5173/login`.
-- **Saisie**: Email `user@example.com`, Mot de passe `password123`.
-- **Vérification**: Redirection vers `/dashboard`.
-- **Preuve**: Voir les KPIs (Suivis actifs, Checks aujourd'hui) et le tableau de performance.
+- **Saisie**: Email `user@nova.dev`, Mot de passe `Demo123456789`.
+- **Vérification**: Redirection vers `/dashboard` (puis aller sur "Mes suivis").
+- **Preuve**: Voir les KPIs et les produits réels PostgreSQL.
 
-## 00:45 - Gestion des suivis
+## 00:45 - Consultation des suivis (Réel)
 - **Action**: Cliquer sur "Mes suivis" dans la sidebar.
-- **Action**: Créer un nouveau suivi Nike.
-- **Action**: Cliquer sur le nouveau suivi pour voir les détails.
-- **Action**: Cliquer sur "Run check" (bouton en haut à droite).
-- **Vérification**: Une nouvelle ligne apparaît dans l'historique des checks.
-- **Action (Optionnel)**: Vérifier dans Mailhog qu'un email a été reçu si l'état a changé.
+- **Action**: Montrer les 5 produits Nova V2 issus de PostgreSQL.
+- **Action**: Utiliser la recherche ("halo") et les filtres ("Épuisé").
+- **Vérification**: La liste se met à jour instantanément.
 
-## 01:30 - Navigation (Pages Non Vides)
-- **Action**: Cliquer sur "Paramètres" (Vérifier l'email affiché).
-- **Action**: Cliquer sur "Aide" (Vérifier la FAQ).
-- **Action**: Cliquer sur "Notifications" (Vérifier l'historique des changements).
-- **Action**: Cliquer sur "Confidentialité" dans le support.
-- **Preuve**: Chaque page affiche un contenu structuré et cohérent.
+## 01:30 - Scénario Cible : Création et Détail
+- **Action**: Cliquer sur "Ajouter un produit" et montrer l'UI d'analyse.
+- **Action**: Cliquer sur un produit pour voir l'écran de détail Nova V2.
+- **Note**: "Design intégré, branchement API complet en cours de finalisation."
+
+## 02:00 - Simulation Backend (Optionnel)
+- **Action**: Déclencher un check via script terminal si le temps le permet.
+- **Vérification**: Notification visible dans Mailhog.
 
 ## 02:15 - Déconnexion et Connexion Administrateur (ADMIN)
 - **Action**: Cliquer sur "Déconnexion".
-- **Action**: Se reconnecter avec l'email `admin@example.com` / `adminpassword`.
+- **Action**: Se reconnecter avec l'email `christopher@nova.dev` / `Demo123456789`.
 - **Vérification**: Redirection automatique vers `/admin/dashboard`.
 - **Preuve**: Voir les KPIs globaux (Total suivis tous utilisateurs) et le Top Domaines.
 

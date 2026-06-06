@@ -43,8 +43,8 @@ Consultez le [Scénario de démo V2](./docs/scenario-demo-v2.md) pour le déroul
 
 | Rôle | Email | Mot de passe | Dashboard |
 |------|-------|--------------|-----------|
-| **Utilisateur** | `user@example.com` | `password123` | `/dashboard` |
-| **Administrateur** | `admin@example.com` | `adminpassword` | `/admin/dashboard` |
+| **Utilisateur** | `user@nova.dev` | `Demo123456789` | `/dashboard` |
+| **Administrateur** | `christopher@nova.dev` | `Demo123456789` | `/admin/dashboard` |
 
 ### Expérience par rôle
 
@@ -53,8 +53,8 @@ Nova propose deux expériences distinctes selon le rôle de l'utilisateur :
 #### 👤 Utilisateur Standard
 Menu complet pour gérer ses propres surveillances :
 - **Tableau de bord** : KPIs personnels et performance des suivis.
-- **Mes suivis** : Gestion (CRUD) des produits surveillés.
-- **Paramètres** : Préférences de compte et informations sur les alertes e-mail (Mailhog).
+- **Mes suivis** : Gestion (liste réelle branchée API + PostgreSQL) des produits surveillés. Recherche, filtres, tri et pagination implémentés.
+- **Paramètres** : Préférences de compte et informations sur les alertes e-mail (Mailhog). UI intégrée, branchement complet à finaliser.
 
 #### 🛡️ Administrateur
 Vision globale du système :
@@ -80,7 +80,7 @@ Nova vise à surveiller des pages produit et notifier les utilisateurs en cas de
 | **Lot 4** | Worker check déterministe (fixtures) | ✅ Clos |
 | **Lot 5** | Orchestration + notification email (Mailhog) | ✅ Clos |
 | **Lot 6** | Frontend skeleton + Auth + CSRF bootstrap | ✅ Clos |
-| **Lot 7** | Watches UI + Run check | ✅ Clos |
+| **Lot 7** | `/watches` : liste réelle branchée API + PostgreSQL. Recherche/filtres/tri/pagination implémentés. `/watches/new` et `/watches/:id` : écrans présents, branchement complet à finaliser. | ✅ Clos |
 | **Lot 8** | Robustesse API + UX | ✅ Clos |
 | **Lot 9** | Pack tests + intégration | ✅ Clos |
 | **Lot 10** | Docs jury + release | 🚧 Finalisation |
@@ -161,10 +161,16 @@ Le plan de démonstration complet (~40 min) est documenté dans [`docs/26-demo-p
 
 **Parcours principal :**
 1. Login via le Frontend
-2. Créer une watch (URL produit)
-3. Lister / consulter les suivis
-4. Déclencher un check (ou attendre le cycle)
-5. Vérifier la notification dans Mailhog
+2. Accéder à “Mes suivis”
+3. Montrer les 5 suivis issus de PostgreSQL
+4. Tester recherche, filtres, tri et pagination
+5. Montrer l’état `SOLD_OUT` avec le filtre “Épuisé”
+
+### Extensions / fallback backend
+Pour démontrer la profondeur technique au-delà de l'UI :
+- **Création de watch** : via Swagger API (`/docs`) ou curl.
+- **Déclenchement d'un check** : via script backend (mode fixture).
+- **Vérification Mailhog** : consultation de l'email généré.
 
 ### Fallback : BACK uniquement
 En cas de problème avec le frontend, la démo peut être réalisée via **Swagger** (`/docs`) ou **curl**.
@@ -195,13 +201,13 @@ curl http://localhost:8000/health
 # Inscription
 curl -X POST http://localhost:8000/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test12345!"}' \
+  -d '{"email":"user@nova.dev","password":"Demo123456789"}' \
   -c cookies.txt
 
 # Connexion (retourne cookies access_token + csrf_token)
 curl -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"Test12345!"}' \
+  -d '{"email":"user@nova.dev","password":"Demo123456789"}' \
   -c cookies.txt
 ```
 
@@ -218,8 +224,8 @@ curl -X POST http://localhost:8000/watches \
   -H "Content-Type: application/json" \
   -H "X-CSRF-Token: $CSRF" \
   -b cookies.txt \
-  -d '{"url":"https://www.ldlc.com/fiche/PB00589057.html","label":"RTX 4090"}'
-# → {"id":"uuid","url":"...","label":"RTX 4090","status":"ACTIVE","stock_state":"UNKNOWN","last_checked_at":null}
+  -d '{"url":"https://lesprit-belle.fr/products/lampe-halo","label":"Lampe Halo"}'
+# → {"id":"uuid","url":"...","label":"Lampe Halo","status":"ACTIVE","stock_state":"UNKNOWN","last_checked_at":null}
 
 # Lister mes watches
 curl http://localhost:8000/watches -b cookies.txt
@@ -258,9 +264,11 @@ curl -X DELETE http://localhost:8000/watches/{watch_id} \
 ### Tests
 
 ```bash
-# Exécuter tous les tests (38 tests : 11 auth + 8 jobs + 10 watches + 9 worker)
+# Exécuter les tests backend
 docker compose exec api pytest tests/ -v
 ```
+
+Suite de tests backend automatisés couvrant l’authentification, les suivis, les jobs et le worker.
 
 ### Jobs — Orchestration (Lot 5)
 
@@ -329,9 +337,9 @@ cd web && pnpm install && pnpm dev
 - `/register` — Création de compte
 - `/login` — Écran de connexion
 - `/dashboard` — Tableau de bord
-- `/watches` — Liste des suivis
-- `/watches/new` — Créer un suivi
-- `/watches/:id` — Détail d'un suivi + historique checks
+- `/watches` — Liste des suivis (Réelle)
+- `/watches/new` — Créer un suivi (UI)
+- `/watches/:id` — Détail d'un suivi + historique checks (UI)
 - `/settings` — Paramètres
 - `/help` — Aide
 
@@ -339,10 +347,9 @@ cd web && pnpm install && pnpm dev
 - Inscription et Connexion fonctionnelles
 - CSRF bootstrap automatique au démarrage
 - Route guard (redirection `/login` si non authentifié)
-- Toggle activer/désactiver un suivi
-- Supprimer un suivi (avec confirmation)
-- Lancer un check manuellement
-- États UI : loading, empty state, error state
+- `/watches` : Liste réelle branchée sur `GET /api/watches` avec recherche, filtres (dont Épuisé), tri et pagination locale.
+- `/watches/new` et `/watches/:id` : Écrans intégrés (Nova V2), branchement API à finaliser pour la création, le détail réel et l'historique réel.
+- États UI : loading, empty state, error state sur la liste des suivis.
 
 Voir le runbook complet dans [`docs/28-ops-observability.md`](./docs/28-ops-observability.md#runbook-de-démarrage-local-back--front).
 

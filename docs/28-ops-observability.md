@@ -16,7 +16,7 @@ Nova utilise **structlog** pour produire des logs au format JSON, facilitant l'a
   "level": "info",
   "event": "watch_check_completed",
   "watch_id": "uuid-1234",
-  "domain": "example.com",
+  "domain": "lesprit-belle.fr",
   "stock_state": "IN_STOCK",
   "duration_ms": 450,
   "fetch_mode": "http"
@@ -59,8 +59,8 @@ Nova utilise **structlog** pour produire des logs au format JSON, facilitant l'a
   "event": "notification_sent",
   "watch_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "user_id": "user-uuid-123",
-  "email": "user@example.com",
-  "product_url": "https://shop.example.com/product/xyz",
+  "email": "user@nova.dev",
+  "product_url": "https://lesprit-belle.fr/products/lampe-halo",
   "stock_state": "IN_STOCK"
 }
 ```
@@ -200,7 +200,7 @@ docker compose up -d api
 docker compose exec api alembic upgrade head
 
 # (Optionnel) Charger les données de test
-docker compose exec api python -m app.scripts.seed
+docker compose exec api python -m app.seed
 
 # Vérifier les logs
 docker compose logs -f api
@@ -226,14 +226,14 @@ open http://localhost:8025
 
 ### 7. Lancer le Frontend (FRONT)
 
-**Option A : via Docker Compose (si configuré)**
+**Option A : via Docker Compose**
 ```bash
-docker compose up -d frontend
+docker compose up -d web
 ```
 
 **Option B : en local (développement)**
 ```bash
-cd frontend
+cd web
 pnpm install        # Installation des dépendances
 pnpm dev            # Démarre sur http://localhost:5173 (Vite)
 ```

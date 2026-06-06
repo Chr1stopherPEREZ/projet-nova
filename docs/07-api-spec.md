@@ -15,24 +15,24 @@ L'authentification repose sur des **JWT (JSON Web Tokens)**.
 ### POST `/auth/register`
 Request
 ```json
-{"email":"user@example.com","password":"..."}
+{"email":"user@nova.dev","password":"..."}
 ```
 Response 201
 ```json
-{"id":"uuid","email":"user@example.com"}
+{"id":"uuid","email":"user@nova.dev"}
 ```
 
 ### POST `/auth/login`
 Request
 ```json
-{"email":"user@example.com","password":"..."}
+{"email":"user@nova.dev","password":"..."}
 ```
 Response 200
 *Note : Le JWT est transmis via un header `Set-Cookie` (HttpOnly). Le corps de la réponse contient les informations de l'utilisateur.*
 ```json
 {
   "id": "uuid",
-  "email": "user@example.com",
+  "email": "user@nova.dev",
   "role": "USER"
 }
 ```
@@ -41,10 +41,10 @@ Response 200
 Response 204
 
 ### POST `/auth/forgot-password` (V2)
-*Note : La réinitialisation de mot de passe est prévue pour la V2.*
+*Note : UI intégrée. Le flux complet de réinitialisation est en cours de finalisation.*
 Request
 ```json
-{"email":"user@example.com"}
+{"email":"user@nova.dev"}
 ```
 Response 202
 
@@ -58,9 +58,10 @@ Response 204
 
 ## Suivis (USER)
 ### GET `/watches`
+Retourne la liste des suivis de l'utilisateur. En V2, cette page est branchée sur l'API réelle et supporte le filtrage, la recherche, le tri et la pagination locale.
 Response 200
 ```json
-[{"id":"uuid","url":"...","status":"ACTIVE","stock_state":"UNKNOWN","last_checked_at":null}]
+[{"id":"uuid","url":"...","status":"ACTIVE","stock_state":"IN_STOCK","last_checked_at":"..."}]
 ```
 
 ### POST `/watches`
@@ -81,12 +82,22 @@ Response 200
 Response 204
 
 ### GET `/watches/{id}/checks`
-Response 200 (paginated)
+Response 200
 ```json
-{
-  "items": [{"checked_at": "...", "stock_state": "IN_STOCK", "http_status": 200, "duration_ms": 450}],
-  "total": 1, "limit": 20, "offset": 0
-}
+[
+  {
+    "id": "uuid",
+    "watch_id": "uuid",
+    "checked_at": "...",
+    "stock_state": "IN_STOCK",
+    "http_status": 200,
+    "fetch_mode": "FIXTURE",
+    "duration_ms": 450,
+    "error_code": null,
+    "error_message": null,
+    "details": {}
+  }
+]
 ```
 
 ### GET `/watches/{id}/notifications` (V2 / Roadmap)
@@ -142,7 +153,7 @@ Retourne les KPIs et le tableau de performance pour l'utilisateur connecté.
     "unread_notifications_count": 0
   },
   "table": [
-    {"host": "nike.com", "checks": 50, "changes": 1, "alerts_sent": 1}
+    {"host": "lesprit-belle.fr", "checks": 50, "changes": 1, "alerts_sent": 1}
   ]
 }
 ```
@@ -164,7 +175,7 @@ Retourne les KPIs globaux et le top des domaines.
     "last_check_at": "..."
   },
   "top_domains": [
-    {"host": "nike.com", "checks": 1200, "changes": 20, "alerts_sent": 20}
+    {"host": "lesprit-belle.fr", "checks": 1200, "changes": 20, "alerts_sent": 20}
   ]
 }
 ```
@@ -176,8 +187,8 @@ Liste les profils de site configurés en base (consultation uniquement).
 [
   {
     "id": "uuid",
-    "name": "Nike.com",
-    "domain_pattern": "nike.com",
+    "name": "L’Esprit Belle",
+    "domain_pattern": "lesprit-belle.fr",
     "is_active": true,
     "fetch_mode": "HTTP"
   }
@@ -206,7 +217,7 @@ Déclenche un cycle de vérification manuel ou via un orchestrateur externe (ex:
 | `url` | string | URL originale du produit. Note : l'unicité du suivi est basée sur une `normalized_url` gérée en interne. |
 | `label` | string | Nom personnalisé (optionnel). |
 | `status` | enum | Statut de surveillance : `ACTIVE`, `PAUSED`. |
-| `stock_state`| enum | État du stock détecté : `IN_STOCK`, `OUT_OF_STOCK`, `UNKNOWN`, `BROKEN`. |
+| `stock_state`| enum | État du stock détecté : `IN_STOCK`, `OUT_OF_STOCK`, `SOLD_OUT`, `UNKNOWN`, `BROKEN`. |
 | `last_checked_at`| datetime | Date du dernier contrôle effectué par le worker. |
 
 ### WatchCheck (Historique de contrôle)
@@ -234,6 +245,7 @@ Déclenche un cycle de vérification manuel ou via un orchestrateur externe (ex:
 - **StockState** :
     - `IN_STOCK` : Produit disponible à l'achat.
     - `OUT_OF_STOCK` : Produit en rupture.
+    - `SOLD_OUT` : Produit épuisé, indisponibilité définitive ou longue durée.
     - `UNKNOWN` : Impossible de déterminer l'état (ex: aucune règle n'a matché).
     - `BROKEN` : État critique déclenché après **3 échecs consécutifs** de récupération (404, timeout, 5xx) ou en cas d'incohérence structurelle majeure.
 - **NotificationStatus** :
@@ -249,7 +261,7 @@ Déclenche un cycle de vérification manuel ou via un orchestrateur externe (ex:
 - 500 : interne
 
 ## Pagination
-Les endpoints listés comme "(paginated)" acceptent les paramètres `limit` (défaut 20, max 100) et `offset` (défaut 0).
+Certains endpoints (stats, logs) acceptent les paramètres `limit` (défaut 20, max 100) et `offset` (défaut 0).
 La réponse suit ce format :
 ```json
 {

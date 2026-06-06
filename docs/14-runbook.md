@@ -17,8 +17,8 @@ docker compose up --build -d
 
 ## 2. Configuration & Seed (Comptes de démo)
 Par défaut, le système propose :
-- **Utilisateur Standard**: `user@example.com` / `password123`
-- **Administrateur**: `admin@example.com` / `adminpassword`
+- **Utilisateur Standard**: `user@nova.dev` / `Demo123456789`
+- **Administrateur**: `christopher@nova.dev` / `Demo123456789`
 
 Si la base est vide, utilisez les migrations Alembic ou le script de seed (si fourni) :
 ```bash
@@ -38,11 +38,11 @@ FIXTURE_NAME=out_of_stock.html
 # FIXTURE_NAME=in_stock.html
 ```
 
-### 3.2. Scénario de transition (Restock)
+### 3.2. Scénario de transition (Restock - Backend)
 1. Réglez `FIXTURE_NAME=out_of_stock.html` et redémarrez (`docker compose restart api worker`).
-2. Créez un suivi (ex: Nike ou Shopify). Lancez un "Run check" -> Le statut reste "Épuisé".
+2. Observez le statut "Épuisé" en base ou via Swagger.
 3. Changez `FIXTURE_NAME=in_stock.html` dans le `.env`.
-4. Lancez à nouveau "Run check" (sans redémarrer si l'API recharge l'env, sinon `docker compose restart api`).
+4. Déclenchez une vérification forcée via le script de trigger ou `POST /jobs/run`.
 5. Observez le passage à "En stock" et vérifiez Mailhog.
 
 ## 4. Troubleshooting

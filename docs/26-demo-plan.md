@@ -57,39 +57,32 @@ Présenter le projet Nova au jury CDA en démontrant les compétences techniques
 
 #### 2.1 Login (2 min)
 1. Ouvrir le **Frontend** (http://localhost:3000)
-2. Se connecter avec le compte utilisateur de test
-3. Montrer le dashboard vide ou avec des suivis existants
+2. Se connecter avec le compte utilisateur de test (`user@nova.dev` / `Demo123456789`)
+3. Montrer la page "Mes suivis" avec les 5 produits Nova V2 issus de PostgreSQL.
 4. Expliquer brièvement : "JWT stocké, cookie HttpOnly" (sécurité)
 
-#### 2.2 Créer une watch (3 min)
+#### 2.2 Créer une watch - Scénario Cible (3 min)
 1. Cliquer "Ajouter un produit" / "Nouveau suivi"
-2. Coller l'URL de la **page de test** (produit en rupture)
-3. Montrer :
-   - Validation de l'URL côté front (UX)
-   - Validation côté API (format, SSRF)
-   - Association automatique au profil de site
-4. Voir le suivi créé avec statut `OUT_OF_STOCK`
+2. Coller l'URL d'un produit Nova V2 (ex: `https://terre-de-france.fr/products/pull-brume`)
+3. Montrer l'UI intégrée (Analyse, choix de variante).
+4. Préciser : "L'interface est prête pour le Design Nova V2, le branchement API final est à venir."
 
 #### 2.3 Lister / consulter les suivis (2 min)
-1. Montrer la liste des suivis avec :
-   - URL / nom du produit
-   - Statut actuel (icône/couleur)
+1. Montrer la liste des suivis RÉELLE avec :
+   - URL / nom du produit / boutique (site_name)
+   - Statut actuel (icône/couleur) incluant SOLD_OUT (Épuisé)
    - Date du dernier contrôle
-   - Site associé
-2. Montrer les actions : pause / reprise / suppression
-3. Mentionner le quota utilisateur
+2. Montrer les fonctionnalités de recherche, filtrage, tri et pagination locale.
+   - Exemple : filtrer par "Épuisé" ou chercher "Halo".
 
-#### 2.4 Déclencher un check (4 min)
-1. **Simuler un restockage** : 
-   - Option A : Changer `FIXTURE_NAME=in_stock.html` dans le fichier `.env` et redémarrer.
-   - Option B : Modifier directement le contenu de la fixture active sur le disque.
-2. **Forcer un cycle du worker** :
-   - Via l'interface : bouton "Run check" sur le produit.
-   - Via Swagger : `POST /jobs/run` (accès admin requis).
-   - Observer les logs : "Check watch_id=... avec fixture 'in_stock.html'".
-3. **Montrer les résultats :**
-   - Le statut passe à `IN_STOCK` dans le dashboard (icône verte).
-   - Historique des contrôles : nouvelle entrée avec état "En stock".
+#### 2.4 Déclencher un check - Simulation Backend (4 min)
+1. **Simuler un restockage** via le script de trigger : 
+   ```bash
+   docker exec -e CHECK_MODE=fixture -e FIXTURE_NAME=in_stock.html projet-nova-api-1 python -m app.scripts.trigger_check --watch-id <ID>
+   ```
+2. Observer les logs du worker.
+3. Actualiser le Dashboard (ou montrer la donnée en base).
+   - Le statut passe à `IN_STOCK` (icône verte).
 
 #### 2.5 Montrer la notification (3 min)
 1. Ouvrir **Mailhog** (http://localhost:8025)
@@ -243,7 +236,7 @@ docker compose exec api pytest tests/test_url_validator.py -v
 # Ou curl avec cookie jar :
 curl -i -c cookies.txt -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "user@test.com", "password": "password123"}'
+  -d '{"email": "user@nova.dev", "password": "Demo123456789"}'
 # → Le cookie access_token (HttpOnly) est stocké dans cookies.txt
 ```
 
@@ -252,7 +245,7 @@ curl -i -c cookies.txt -X POST http://localhost:8000/auth/login \
 # POST /watches en réutilisant le cookie
 curl -b cookies.txt -X POST http://localhost:8000/watches \
   -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/product/123"}'
+  -d '{"url": "https://lesprit-belle.fr/products/lampe-halo"}'
 ```
 
 #### 3. Lister les watches
@@ -266,7 +259,7 @@ curl -b cookies.txt http://localhost:8000/watches
 # Se connecter en admin d'abord
 curl -i -c cookies-admin.txt -X POST http://localhost:8000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@test.com", "password": "adminpass123"}'
+  -d '{"email": "christopher@nova.dev", "password": "Demo123456789"}'
 
 # POST /jobs/run (endpoint Ops/Jobs - voir 07-api-spec.md)
 curl -b cookies-admin.txt -X POST http://localhost:8000/jobs/run
