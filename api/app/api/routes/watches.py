@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.core.csrf import verify_csrf
@@ -101,7 +101,7 @@ def list_watches(
     Liste les watches du user connecté.
     Auth obligatoire.
     """
-    watches = db.query(Watch).filter(Watch.user_id == current_user.id).all()
+    watches = db.query(Watch).filter(Watch.user_id == current_user.id).options(joinedload(Watch.site_profile)).all()
     return [
         WatchOut(
             id=w.id,
@@ -113,6 +113,7 @@ def list_watches(
             variant_sku=w.variant_sku,
             variant_selector=w.variant_selector,
             variant_meta=w.variant_meta,
+            site_name=w.site_profile.name if w.site_profile else None,
         )
         for w in watches
     ]

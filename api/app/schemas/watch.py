@@ -52,6 +52,7 @@ class WatchOut(BaseModel):
     variant_sku: str | None = None
     variant_selector: dict[str, Any] | None = None
     variant_meta: dict[str, Any] | None = None
+    site_name: str | None = None
 
     model_config = {"from_attributes": True}
 

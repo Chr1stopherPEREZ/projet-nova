@@ -23,12 +23,12 @@ DEMO_PASSWORD = os.getenv("NOVA_DEMO_PASSWORD", "Demo123456789")
 
 # Liste des utilisateurs à créer/mettre à jour
 SEED_USERS = [
-    {"email": "christopher@example.test", "role": UserRole.ADMIN},
-    {"email": "user@example.test", "role": UserRole.USER},
-    {"email": "florent@example.test", "role": UserRole.USER},
-    {"email": "quentin@example.test", "role": UserRole.USER},
-    {"email": "mathis@example.test", "role": UserRole.USER},
-    {"email": "estelle@example.test", "role": UserRole.USER},
+    {"email": "christopher@nova.dev", "role": UserRole.ADMIN},
+    {"email": "user@nova.dev", "role": UserRole.USER},
+    {"email": "florent@nova.dev", "role": UserRole.USER},
+    {"email": "quentin@nova.dev", "role": UserRole.USER},
+    {"email": "mathis@nova.dev", "role": UserRole.USER},
+    {"email": "estelle@nova.dev", "role": UserRole.USER},
 ]
 
 # --- DONNÉES DE DÉMO (PRODUITS) ---
@@ -122,7 +122,7 @@ def seed_site_profiles(db: Session) -> None:
 def seed_watches(db: Session) -> None:
     """Crée ou met à jour les suivis et leur historique pour l'utilisateur démo."""
     print("[seed] Vérification des suivis (watches - upsert)...")
-    user_email = "user@example.test"
+    user_email = "user@nova.dev"
     user = db.query(User).filter(User.email == user_email).first()
     if not user:
         print(f"  ! Utilisateur {user_email} non trouvé, skip watches.")
@@ -198,11 +198,30 @@ def seed_watches(db: Session) -> None:
             
     db.commit()
 
+def cleanup_old_demo_data(db: Session) -> None:
+    """Supprime les anciens comptes de démo s'ils existent."""
+    emails_to_remove = [
+        "demo@nova.dev",
+        "christopher@example.test",
+        "user@example.test",
+        "florent@example.test",
+        "quentin@example.test",
+        "mathis@example.test",
+        "estelle@example.test"
+    ]
+    for email in emails_to_remove:
+        old_user = db.query(User).filter(User.email == email).first()
+        if old_user:
+            print(f"[seed] Nettoyage : suppression de l'ancien compte {email}...")
+            db.delete(old_user)
+    db.commit()
+
 def main() -> None:
     """Point d'entrée principal."""
     print("==> Démarrage du seed Nova V2...")
     db = SessionLocal()
     try:
+        cleanup_old_demo_data(db)
         seed_users(db)
         seed_site_profiles(db)
         seed_watches(db)
