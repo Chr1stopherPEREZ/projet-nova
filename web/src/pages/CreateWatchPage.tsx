@@ -1,32 +1,124 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Mail } from 'lucide-react';
+import { Check, Mail, Loader2, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import { StatusBadge } from '../components/ui/DashboardUI';
+import { apiFetch, authService } from '../api/client';
+
+interface VariantInfo {
+  variant_sku: string;
+  color: string | null;
+  size: string | null;
+  available: boolean | null;
+  meta: any;
+}
+
+interface PreviewResponse {
+  title: string | null;
+  source: string;
+  variants: VariantInfo[];
+  debug_info?: any;
+}
+
+interface WatchResponse {
+  id: string;
+  [key: string]: any;
+}
 
 /**
  * CreateWatchPage - Nouveau suivi (V2)
  */
 export default function CreateWatchPage() {
   const navigate = useNavigate();
-  const [url, setUrl] = useState('https://lesprit-belle.fr/sv/products/lampe-chauffe-bougie-twenow');
+  
+  /* States formulaire */
+  const [url, setUrl] = useState('');
   const [name, setName] = useState('');
   const [freq, setFreq] = useState('30 min');
   
-  /* Note: La logique de preview réelle (apiFetch('/watches/preview'))
-  est mise de côté pour l'intégration visuelle V2. */
-  const mockPreview = {
-    name: 'Lampe Chauffe-Bougie TWENOW',
-    source: 'L’Esprit Belle',
-    status: 'in_stock',
-    price: '35,00 €',
-    thumb: 'LT'
+  /* States techniques */
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  
+  /* States preview */
+  const [preview, setPreview] = useState<PreviewResponse | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<VariantInfo | null>(null);
+
+  /* Charger l'email au montage */
+  useEffect(() => {
+    authService.checkAuth().then(user => {
+      if (user) setUserEmail(user.email);
+    });
+  }, []);
+
+  const handleAnalyze = async () => {
+    if (!url) return;
+    
+    setIsAnalyzing(true);
+    setError(null);
+    setPreview(null);
+    setSelectedVariant(null);
+    
+    try {
+      const data = await apiFetch<PreviewResponse>('/watches/preview', {
+        method: 'POST',
+        body: JSON.stringify({ url })
+      });
+      
+      setPreview(data);
+      if (data.variants && data.variants.length > 0) {
+        setSelectedVariant(data.variants[0]);
+      }
+    } catch (err: any) {
+      console.error('Analysis failed:', err);
+      setError(err.message || "Impossible d'analyser cette URL.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
-  const handleCreate = (e: FormEvent) => {
-    e.preventDefault();
-    /* Simulation POST /watches */
-    navigate('/watches');
+  const handleCreate = async () => {
+    if (!url || isCreating) return;
+
+    setIsCreating(true);
+    setError(null);
+
+    try {
+      const payload = {
+        url,
+        label: name || preview?.title || null,
+        variant_sku: selectedVariant?.variant_sku || null,
+        variant_selector: selectedVariant
+          ? {
+              color: selectedVariant.color,
+              size: selectedVariant.size
+            }
+          : null,
+        variant_meta: selectedVariant?.meta || null
+      };
+
+      const res = await apiFetch<WatchResponse>('/watches', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (res.id) {
+        navigate(`/watches/${res.id}`);
+      } else {
+        navigate('/watches');
+      }
+    } catch (err: any) {
+      console.error('Creation failed:', err);
+      if (err.message?.includes('WATCH_ALREADY_EXISTS')) {
+        setError("Un suivi existe déjà pour cette URL et cette variante.");
+      } else {
+        setError(err.message || "Impossible de créer le suivi.");
+      }
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   return (
@@ -35,6 +127,13 @@ export default function CreateWatchPage() {
         <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">Nouveau suivi</h1>
         <p className="text-[13.5px] text-ink2 mt-1">Collez l'URL d'un produit. Nova vérifiera régulièrement sa disponibilité et vous alertera par e-mail.</p>
       </div>
+
+      {error && (
+        <div className="mb-6 p-4 bg-error-soft border border-error/20 rounded-lg flex items-start gap-3 text-error">
+          <AlertCircle className="shrink-0 mt-0.5" size={16} />
+          <div className="text-[13.5px] font-medium">{error}</div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 max-w-[1000px]">
         {/* Formulaire (Gauche) */}
@@ -53,30 +152,72 @@ export default function CreateWatchPage() {
                     onChange={(e) => setUrl(e.target.value)}
                     className="h-[38px] flex-1 rounded-md border border-border bg-surface px-3 text-[13.5px] outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/15 transition-all"
                     placeholder="https://..."
+                    disabled={isAnalyzing || isCreating}
                   />
-                  <button className="btn ghost border-border">Analyser</button>
+                  <button 
+                    onClick={handleAnalyze} 
+                    disabled={!url || isAnalyzing || isCreating}
+                    className="btn ghost border-border min-w-[100px]"
+                  >
+                    {isAnalyzing ? <Loader2 className="animate-spin" size={16} /> : 'Analyser'}
+                  </button>
                 </div>
               </div>
 
-              {/* Aperçu après analyse (Mock) */}
-              <div className="flex items-center gap-3.5 p-3.5 bg-bg border border-border rounded-lg">
-                <div className="w-12 h-12 rounded-md bg-surface border border-border flex items-center justify-center text-[11px] font-semibold text-ink3 shrink-0">
-                  {mockPreview.thumb}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <span className="font-medium text-ink text-[13.5px] truncate">{mockPreview.name}</span>
-                    <StatusBadge status={mockPreview.status} />
+              {/* Aperçu après analyse */}
+              {preview && (
+                <div className="flex items-center gap-3.5 p-3.5 bg-bg border border-border rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="w-12 h-12 rounded-md bg-surface border border-border flex items-center justify-center text-[11px] font-semibold text-ink3 shrink-0">
+                    {preview.title?.substring(0, 2).toUpperCase() || '??'}
                   </div>
-                  <div className="flex items-center gap-3 text-[12.5px] text-ink2">
-                    <span>{mockPreview.source}</span>
-                    <span className="w-1 h-1 rounded-full bg-border-strong" />
-                    <span className="font-mono text-ink">{mockPreview.price}</span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="font-medium text-ink text-[13.5px] truncate">{preview.title || "Produit détecté"}</span>
+                      {selectedVariant && (
+                        <StatusBadge status={selectedVariant.available ? 'in_stock' : 'out_of_stock'} />
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-[12.5px] text-ink2">
+                      <span>{preview.source}</span>
+                      {selectedVariant?.meta?.price && (
+                        <>
+                          <span className="w-1 h-1 rounded-full bg-border-strong" />
+                          <span className="font-mono text-ink">
+                            {(selectedVariant.meta.price / 100).toFixed(2)}{selectedVariant.meta.currency ? ` ${selectedVariant.meta.currency}` : ''}
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
+
+          {/* 1b. Variantes (Si présentes) */}
+          {preview && preview.variants && preview.variants.length > 0 && (
+            <div className="bg-surface border border-border rounded-lg p-5 animate-in fade-in slide-in-from-top-2 duration-300">
+              <h3 className="text-[14px] font-semibold text-ink mb-1">Choix de la variante</h3>
+              <p className="text-[12.5px] text-ink2 mb-4">Ce produit propose plusieurs options. Laquelle voulez-vous suivre ?</p>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <select 
+                  className="h-[38px] w-full rounded-md border border-border bg-surface px-3 text-[13.5px] outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/15 transition-all"
+                  value={selectedVariant?.variant_sku || ''}
+                  onChange={(e) => {
+                    const variant = preview.variants.find(v => v.variant_sku === e.target.value);
+                    if (variant) setSelectedVariant(variant);
+                  }}
+                >
+                  {preview.variants.map((v) => (
+                    <option key={v.variant_sku} value={v.variant_sku}>
+                      {v.color || ''} {v.size || ''} {!(v.color || v.size) ? `Variante ${v.variant_sku}` : ''} ({v.available ? 'En stock' : 'Épuisé'})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
 
           {/* 2. Détails */}
           <div className="bg-surface border border-border rounded-lg p-5">
@@ -91,7 +232,7 @@ export default function CreateWatchPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-[38px] w-full rounded-md border border-border bg-surface px-3 text-[13.5px] outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/15 transition-all"
-                placeholder="ex. Coffret Solstice — Cadeau Noël"
+                placeholder={preview?.title ? `ex. ${preview.title}` : "ex. Coffret Solstice — Cadeau Noël"}
               />
               <p className="text-[12.5px] text-ink2 mt-1.5">Laissez vide pour utiliser le nom détecté automatiquement.</p>
             </div>
@@ -130,6 +271,7 @@ export default function CreateWatchPage() {
                 </label>
               ))}
             </div>
+            <p className="text-[11.5px] text-ink3 mt-3 italic">Note: Le réglage de fréquence sera activé dans une prochaine mise à jour.</p>
           </div>
 
           {/* 4. Notification */}
@@ -142,7 +284,7 @@ export default function CreateWatchPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-medium text-ink">E-mail</div>
-                <div className="text-[12.5px] text-ink2 truncate">christopher@nova.dev</div>
+                <div className="text-[12.5px] text-ink2 truncate">{userEmail || 'chargement...'}</div>
               </div>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-soft text-success text-[12px] font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-success" />
@@ -153,8 +295,20 @@ export default function CreateWatchPage() {
 
           {/* Actions */}
           <div className="flex justify-end gap-2.5 pt-2">
-            <button onClick={() => navigate('/watches')} className="btn ghost px-6">Annuler</button>
-            <button onClick={handleCreate} className="btn primary px-8">Créer le suivi</button>
+            <button 
+              onClick={() => navigate('/watches')} 
+              disabled={isCreating}
+              className="btn ghost px-6"
+            >
+              Annuler
+            </button>
+            <button 
+              onClick={handleCreate} 
+              disabled={!url || isCreating || isAnalyzing}
+              className="btn primary px-8 min-w-[160px]"
+            >
+              {isCreating ? <Loader2 className="animate-spin" size={18} /> : 'Créer le suivi'}
+            </button>
           </div>
         </div>
 
@@ -164,22 +318,28 @@ export default function CreateWatchPage() {
             <div className="text-[11px] font-medium uppercase tracking-[0.06em] text-ink3 mb-3">Aperçu</div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-11 h-11 rounded-md bg-muted border border-border flex items-center justify-center text-[10px] font-semibold text-ink3">
-                {mockPreview.thumb}
+                {preview ? (preview.title?.substring(0, 2).toUpperCase() || '??') : '??'}
               </div>
               <div className="min-w-0">
-                <div className="text-[13.5px] font-medium text-ink truncate">{name || mockPreview.name}</div>
-                <div className="text-[12px] text-ink2">{mockPreview.source}</div>
+                <div className="text-[13.5px] font-medium text-ink truncate">
+                  {name || preview?.title || 'En attente...'}
+                </div>
+                <div className="text-[12px] text-ink2">{preview?.source || '---'}</div>
               </div>
             </div>
             
             <div className="grid grid-cols-2 gap-y-3 gap-x-2 text-[12.5px]">
               <div>
                 <div className="text-ink2 mb-1">Statut détecté</div>
-                <StatusBadge status={mockPreview.status} />
+                <StatusBadge status={selectedVariant ? (selectedVariant.available ? 'in_stock' : 'out_of_stock') : 'unknown'} />
               </div>
               <div>
                 <div className="text-ink2 mb-1">Prix</div>
-                <div className="font-mono font-medium text-ink">{mockPreview.price}</div>
+                <div className="font-mono font-medium text-ink">
+                  {selectedVariant?.meta?.price 
+                    ? `${(selectedVariant.meta.price / 100).toFixed(2)}${selectedVariant.meta.currency ? ` ${selectedVariant.meta.currency}` : ''}`
+                    : '---'}
+                </div>
               </div>
               <div>
                 <div className="text-ink2 mb-1">Fréquence</div>
