@@ -49,10 +49,13 @@ class WatchOut(BaseModel):
     status: str  # ACTIVE ou PAUSED (correspond à watch_status dans le modèle)
     stock_state: str  # IN_STOCK, OUT_OF_STOCK, SOLD_OUT, UNKNOWN, BROKEN
     last_checked_at: datetime | None = None
+    created_at: datetime | None = None
     variant_sku: str | None = None
     variant_selector: dict[str, Any] | None = None
     variant_meta: dict[str, Any] | None = None
     site_name: str | None = None
+    last_price: float | None = None
+    last_currency: str | None = None
 
     model_config = {"from_attributes": True}
 

@@ -46,8 +46,11 @@ def extract_handle(url: str) -> Optional[str]:
         return match.group(1)
     return None
 
-def get_shopify_ajax_url(url: str, handle: str) -> str:
-    """Construit l'URL AJAX pour un produit Shopify en respectant le préfixe de chemin."""
+def get_shopify_ajax_url(url: str, handle: str, extension: str = "js") -> str:
+    """
+    Construit l'URL AJAX pour un produit Shopify en respectant le préfixe de chemin.
+    Supporte les extensions .js (standard AJAX) et .json (standard API).
+    """
     parsed = urlparse(url)
     path = parsed.path
     # On extrait le préfixe qui se trouve avant /products/
@@ -55,41 +58,58 @@ def get_shopify_ajax_url(url: str, handle: str) -> str:
     if "/products/" in path:
         prefix = path.split("/products/")[0]
     
-    return f"https://{parsed.netloc}{prefix}/products/{handle}.js"
+    return f"https://{parsed.netloc}{prefix}/products/{handle}.{extension}"
 
 def fetch_shopify_product_json_sync(handle: str, base_url: str) -> Optional[dict]:
-    """Récupère le JSON du produit via l'endpoint Shopify AJAX (version synchrone)."""
-    ajax_url = get_shopify_ajax_url(base_url, handle)
-    logger.info(f"Fetching Shopify AJAX (sync): {ajax_url}")
-    
-    try:
-        # On utilise httpx.Client au lieu de AsyncClient
-        with httpx.Client(timeout=10.0) as client:
-            response = client.get(ajax_url)
-            logger.info(f"Shopify AJAX sync response: status={response.status_code}, content_type={response.headers.get('content-type')}")
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Shopify AJAX sync error {response.status_code} for {ajax_url}")
-    except Exception as e:
-        logger.error(f"Shopify AJAX sync exception: {str(e)}")
+    """
+    Récupère le JSON du produit via l'endpoint Shopify AJAX (version synchrone).
+    Tente .js puis .json en cas d'échec.
+    """
+    for ext in ["js", "json"]:
+        ajax_url = get_shopify_ajax_url(base_url, handle, extension=ext)
+        logger.info(f"Fetching Shopify AJAX (sync, try .{ext}): {ajax_url}")
+        
+        try:
+            with httpx.Client(timeout=10.0, follow_redirects=True) as client:
+                response = client.get(ajax_url)
+                logger.info(f"Shopify AJAX sync response (.{ext}): status={response.status_code}, content_type={response.headers.get('content-type')}")
+                if response.status_code == 200:
+                    # Certains sites renvoient du HTML même pour .js si non trouvé, 
+                    # donc on vérifie le content-type si possible ou on attrape l'erreur JSON
+                    try:
+                        return response.json()
+                    except json.JSONDecodeError:
+                        logger.warning(f"Response from {ajax_url} is not valid JSON")
+                else:
+                    logger.error(f"Shopify AJAX sync error {response.status_code} for {ajax_url}")
+        except Exception as e:
+            logger.error(f"Shopify AJAX sync exception for {ajax_url}: {str(e)}")
+            
     return None
 
 async def fetch_shopify_product_json(handle: str, base_url: str) -> Optional[dict]:
-    """Récupère le JSON du produit via l'endpoint Shopify AJAX."""
-    ajax_url = get_shopify_ajax_url(base_url, handle)
-    logger.info(f"Fetching Shopify AJAX: {ajax_url}")
-    
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        try:
-            response = await client.get(ajax_url)
-            logger.info(f"Shopify AJAX response: status={response.status_code}, content_type={response.headers.get('content-type')}")
-            if response.status_code == 200:
-                return response.json()
-            else:
-                logger.error(f"Shopify AJAX error {response.status_code} for {ajax_url}")
-        except Exception as e:
-            logger.error(f"Shopify AJAX exception: {str(e)}")
+    """
+    Récupère le JSON du produit via l'endpoint Shopify AJAX.
+    Tente .js puis .json en cas d'échec.
+    """
+    for ext in ["js", "json"]:
+        ajax_url = get_shopify_ajax_url(base_url, handle, extension=ext)
+        logger.info(f"Fetching Shopify AJAX (try .{ext}): {ajax_url}")
+        
+        async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+            try:
+                response = await client.get(ajax_url)
+                logger.info(f"Shopify AJAX response (.{ext}): status={response.status_code}, content_type={response.headers.get('content-type')}")
+                if response.status_code == 200:
+                    try:
+                        return response.json()
+                    except json.JSONDecodeError:
+                        logger.warning(f"Response from {ajax_url} is not valid JSON")
+                else:
+                    logger.error(f"Shopify AJAX error {response.status_code} for {ajax_url}")
+            except Exception as e:
+                logger.error(f"Shopify AJAX exception for {ajax_url}: {str(e)}")
+                
     return None
 
 def normalize_shopify_variants(product_json: dict) -> list[VariantInfo]:
@@ -179,7 +199,7 @@ def match_shopify_variant(variants: list[VariantInfo], selector: dict[str, Any])
             return v
     return None
 
-def check_shopify_availability(product_json: dict, variant_selector: dict[str, Any] | None = None) -> tuple[str, dict[str, Any]]:
+def check_shopify_availability(product_json: dict, variant_selector: dict[str, Any] | None = None, url: str | None = None) -> tuple[str, dict[str, Any]]:
     """Vérifie le stock pour Shopify (via JSON)."""
     if not product_json or not isinstance(product_json, dict) or "variants" not in product_json:
         logger.error("Shopify JSON invalid or empty")
@@ -197,6 +217,21 @@ def check_shopify_availability(product_json: dict, variant_selector: dict[str, A
     # Calcul de any_available pour les logs et détails
     any_available = any(v.available is True for v in variants)
 
+    # Extraire le prix du produit global (souvent le prix de la première variante)
+    product_price = None
+    if variants:
+        price_raw = variants[0].meta.get("price")
+        if price_raw:
+            try:
+                product_price = float(price_raw) / 100.0
+            except (ValueError, TypeError):
+                product_price = price_raw
+
+    # Déterminer la devise selon la règle Nova V2
+    currency = "EUR"
+    if url and "cassiop" in url.lower():
+        currency = "CHF"
+
     # Échantillon des variantes pour le debug
     variant_sample = [
         {"id": v.variant_sku, "available": v.available}
@@ -209,7 +244,9 @@ def check_shopify_availability(product_json: dict, variant_selector: dict[str, A
         "product_available": product_available,
         "any_available": any_available,
         "nb_variants": len(variants),
-        "variant_sample": variant_sample
+        "variant_sample": variant_sample,
+        "price": product_price,
+        "currency": currency
     }
     
     # Garde-fou au niveau supérieur
@@ -238,6 +275,15 @@ def check_shopify_availability(product_json: dict, variant_selector: dict[str, A
     details["mode"] = "variant_strict"
     details["found_variant"] = selected_variant.meta
     details["found_variant_available"] = selected_variant.available
+    
+    # Extraire le prix proprement pour l'affichage Nova V2
+    price_raw = selected_variant.meta.get("price")
+    if price_raw:
+        # Shopify price est souvent en centimes (ex: 3500 pour 35.00)
+        try:
+            details["price"] = float(price_raw) / 100.0
+        except (ValueError, TypeError):
+            details["price"] = price_raw
     
     if selected_variant.available is True:
         logger.info(f"Shopify Variant check: IN_STOCK for {variant_selector}")

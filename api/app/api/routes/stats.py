@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import func, and_, String
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.api.deps import get_current_user, require_admin
 from app.core.csrf import verify_csrf
@@ -22,6 +22,7 @@ from app.schemas.stats import (
     DashboardKPIs, 
     AdminDashboardKPIs,
     PerformanceRow,
+    RecentActivityRow,
     SiteProfileSimple
 )
 
@@ -52,9 +53,26 @@ def get_user_dashboard_stats(
         Watch.watch_status == WatchStatus.ACTIVE
     ).count()
 
+    in_stock_count = db.query(Watch).filter(
+        Watch.user_id == current_user.id,
+        Watch.watch_status == WatchStatus.ACTIVE,
+        Watch.stock_state == "IN_STOCK"
+    ).count()
+
+    out_of_stock_count = db.query(Watch).filter(
+        Watch.user_id == current_user.id,
+        Watch.watch_status == WatchStatus.ACTIVE,
+        Watch.stock_state == "OUT_OF_STOCK"
+    ).count()
+
     checks_today = db.query(WatchCheck).join(Watch).filter(
         Watch.user_id == current_user.id,
         WatchCheck.checked_at >= today_start
+    ).count()
+
+    checks_7d = db.query(WatchCheck).join(Watch).filter(
+        Watch.user_id == current_user.id,
+        WatchCheck.checked_at >= seven_days_ago
     ).count()
 
     # Changements sur 7 jours (syntaxe Postgres JSONB)
@@ -125,17 +143,42 @@ def get_user_dashboard_stats(
         print(f"Erreur stats unread_notifications: {e}")
         unread_notifications_count = 0
 
+    # Activité récente
+    recent_checks = db.query(WatchCheck).join(Watch).filter(
+        Watch.user_id == current_user.id
+    ).options(
+        joinedload(WatchCheck.watch).joinedload(Watch.site_profile)
+    ).order_by(WatchCheck.checked_at.desc()).limit(10).all()
+    
+    recent_activity = [
+        RecentActivityRow(
+            id=c.id,
+            watch_id=c.watch_id,
+            checked_at=c.checked_at,
+            product_name=c.watch.label or "Produit sans nom",
+            site_name=c.watch.site_profile.name if c.watch.site_profile else None,
+            from_state=None,
+            to_state=c.stock_state,
+            price=c.details.get("price") if c.details else None,
+            currency=c.details.get("currency") if c.details else None
+        ) for c in recent_checks
+    ]
+
     return UserDashboardResponse(
         kpis=DashboardKPIs(
             active_watches=active_watches,
+            in_stock_count=in_stock_count,
+            out_of_stock_count=out_of_stock_count,
             checks_today=checks_today,
+            checks_7d=checks_7d,
             changes_7d=changes_7d,
             last_check_at=last_check.checked_at if last_check else None,
             errors_7d=errors_7d,
             alerts_sent_7d=changes_7d, # MVP: 1 changement = 1 alerte
             unread_notifications_count=unread_notifications_count
         ),
-        table=table
+        table=table,
+        recent_activity=recent_activity
     )
 
 @router.post("/notifications/mark-as-read", status_code=204)
@@ -220,4 +263,4 @@ def list_admin_site_profiles(
     """Liste les profils de site (Admin)."""
     return db.query(SiteProfile).order_by(SiteProfile.name).all()
 
-# RStats.py ROUTES
+# Stats.py ROUTES

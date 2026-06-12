@@ -92,7 +92,7 @@ def analyze_variant(
         # En mode FIXTURE de démo, on accepte un fallback HTML simple si le JSON échoue.
         try:
             product_json = json.loads(text)
-            stock_state_str, details = check_shopify_availability(product_json, variant_selector)
+            stock_state_str, details = check_shopify_availability(product_json, variant_selector, url)
             stock_state = StockState(stock_state_str)
             return stock_state, 200, details
         except json.JSONDecodeError:
@@ -198,7 +198,7 @@ def run_check(
             
             product_json = fetch_shopify_product_json_sync(handle, watch.original_url)
             if product_json:
-                stock_state_str, details = check_shopify_availability(product_json, watch.variant_selector)
+                stock_state_str, details = check_shopify_availability(product_json, watch.variant_selector, watch.original_url)
                 stock_state = StockState(stock_state_str)
                 http_status = 200
                 if stock_state == StockState.UNKNOWN:

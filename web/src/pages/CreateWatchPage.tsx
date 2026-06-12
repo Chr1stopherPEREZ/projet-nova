@@ -9,18 +9,18 @@ import { StatusBadge } from '../components/ui/DashboardUI';
  */
 export default function CreateWatchPage() {
   const navigate = useNavigate();
-  const [url, setUrl] = useState('https://cassiopee-bougie.fr/products/coffret-3-bougies-solstice');
+  const [url, setUrl] = useState('https://lesprit-belle.fr/sv/products/lampe-chauffe-bougie-twenow');
   const [name, setName] = useState('');
   const [freq, setFreq] = useState('30 min');
   
   /* Note: La logique de preview réelle (apiFetch('/watches/preview'))
   est mise de côté pour l'intégration visuelle V2. */
   const mockPreview = {
-    name: 'Coffret 3 bougies « Solstice »',
-    source: 'Cassiopée Bougie',
-    status: 'out',
-    price: '59,00 €',
-    thumb: 'CB'
+    name: 'Lampe Chauffe-Bougie TWENOW',
+    source: 'L’Esprit Belle',
+    status: 'in_stock',
+    price: '35,00 €',
+    thumb: 'LT'
   };
 
   const handleCreate = (e: FormEvent) => {
@@ -142,7 +142,7 @@ export default function CreateWatchPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-medium text-ink">E-mail</div>
-                <div className="text-[12.5px] text-ink2 truncate">christopher@example.test</div>
+                <div className="text-[12.5px] text-ink2 truncate">christopher@nova.dev</div>
               </div>
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success-soft text-success text-[12px] font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-success" />

@@ -1,62 +1,174 @@
-import { Plus, ArrowRight } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
+import { useNavigate, Link } from 'react-router-dom'
 import DashboardLayout from '../components/layout/DashboardLayout'
 import { StatCard, DashboardCard, StatusBadge, Segment } from '../components/ui/DashboardUI'
 import { LineChart } from '../components/ui/LineChart'
 import { Sparkline } from '../components/ui/Sparkline'
+import { apiFetch } from '../api/client'
 
-const STATS = [
-  { label: 'Suivis actifs', value: '5', delta: '2 en stock · 3 en rupture' },
-  { label: 'Vérifications · 7 j', value: '106', delta: '~ 15 par jour' },
-  { label: 'Retours en stock', value: '3', delta: 'Dernier il y a 8 min' },
-  { label: 'Alertes envoyées', value: '3', delta: 'Par e-mail' },
-];
+interface DashboardStats {
+  kpis: {
+    active_watches: number;
+    in_stock_count: number;
+    out_of_stock_count: number;
+    checks_today: number;
+    checks_7d: number;
+    changes_7d: number;
+    last_check_at: string | null;
+    errors_7d: number;
+    alerts_sent_7d: number;
+    unread_notifications_count: number;
+  };
+  table: any[];
+  recent_activity: any[];
+}
 
-const CHART_DATA = [
-  { label: 'Lun', checks: 14, available: 2 },
-  { label: 'Mar', checks: 16, available: 3 },
-  { label: 'Mer', checks: 15, available: 1 },
-  { label: 'Jeu', checks: 18, available: 4 },
-  { label: 'Ven', checks: 17, available: 2 },
-  { label: 'Sam', checks: 12, available: 0 },
-  { label: 'Dim', checks: 14, available: 3 },
-];
-
-const TRACKINGS = [
-  { id: 1, name: 'Lampe « Halo »', source: "L'Esprit Belle", status: 'in_stock', trend: [2, 2, 3, 2, 3, 5, 7] },
-  { id: 2, name: 'Coffret « Solstice »', source: 'Cassiopée Bougie', status: 'out', trend: [6, 5, 5, 4, 3, 3, 2] },
-  { id: 3, name: 'Bougie « Figuier »', source: 'Cassiopée Bougie', status: 'in_stock', trend: [5, 5, 6, 5, 6, 6, 6] },
-  { id: 4, name: 'Montre « Horizon »', source: 'Terre de France', status: 'out', trend: [3, 3, 2, 2, 2, 2, 2] },
-  { id: 5, name: 'Pull « Brume »', source: 'Terre de France', status: 'sold_out', trend: [3, 3, 3, 3, 3, 3, 3] },
-];
-
-const RECENT_ACTIVITY = [
-  { id: 1, time: 'il y a 8 min', product: 'Lampe chauffe-bougie « Halo »', source: "L'Esprit Belle", from: 'out', to: 'in_stock', price: '49,90 €' },
-  { id: 2, time: 'il y a 38 min', product: 'Coffret 3 bougies « Solstice »', source: 'Cassiopée Bougie', from: 'in_stock', to: 'out', price: '59,00 €' },
-  { id: 3, time: 'il y a 2 h', product: 'Bougie artisanale « Figuier »', source: 'Cassiopée Bougie', from: 'in_stock', to: 'in_stock', price: '24,90 €' },
-  { id: 4, time: 'il y a 3 h', product: 'Pull mérinos « Brume »', source: 'Terre de France', from: 'out', to: 'sold_out', price: '—' },
-];
+interface Watch {
+  id: string;
+  label: string | null;
+  site_name: string | null;
+  stock_state: string;
+}
 
 function DashboardPage() {
+  const navigate = useNavigate();
+  const [data, setData] = useState<DashboardStats | null>(null);
+  const [watches, setWatches] = useState<Watch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [statsRes, watchesRes] = await Promise.all([
+        apiFetch<DashboardStats>('/stats/dashboard'),
+        apiFetch<Watch[]>('/watches')
+      ]);
+      setData(statsRes);
+      setWatches(watchesRes);
+    } catch (err: any) {
+      console.error('Failed to fetch dashboard data:', err);
+      setError(err.message || 'Impossible de charger les données du tableau de bord');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Tableau de bord">
+        <div className="flex flex-col items-center justify-center py-20 text-ink2">
+          <Loader2 size={32} className="animate-spin mb-4 text-primary" />
+          <p className="text-[14px]">Chargement de vos statistiques...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <DashboardLayout title="Tableau de bord">
+        <div className="max-w-md mx-auto mt-20 p-6 bg-white border border-border rounded-xl text-center shadow-sm">
+          <div className="w-12 h-12 bg-error-soft text-error rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertCircle size={24} />
+          </div>
+          <h2 className="text-[16px] font-bold text-ink mb-2">Une erreur est survenue</h2>
+          <p className="text-[13px] text-ink2 mb-6">{error}</p>
+          <button 
+            onClick={() => fetchData()}
+            className="btn bg-primary text-white w-full h-10"
+          >
+            Réessayer
+          </button>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const kpis = data.kpis;
+
+  const STATS_CARDS = [
+    { 
+      label: 'Suivis actifs', 
+      value: kpis.active_watches.toString(), 
+      delta: `${kpis.in_stock_count} en stock · ${kpis.out_of_stock_count} en rupture` 
+    },
+    { 
+      label: 'Vérifications · 7 j', 
+      value: kpis.checks_7d.toString(), 
+      delta: `Aujourd'hui : ${kpis.checks_today}` 
+    },
+    { 
+      label: 'Retours en stock', 
+      value: kpis.changes_7d.toString(), 
+      delta: kpis.changes_7d > 0 ? 'Sur les 7 derniers jours' : 'Aucun récemment' 
+    },
+    { 
+      label: 'Alertes envoyées', 
+      value: kpis.alerts_sent_7d.toString(), 
+      delta: 'Par e-mail' 
+    },
+  ];
+
+  /* Simulation CHART_DATA simplifiée */
+  const CHART_DATA = [
+    { label: 'Lun', checks: Math.floor(kpis.checks_7d / 7), available: Math.floor(kpis.changes_7d / 7) },
+    { label: 'Mar', checks: Math.floor(kpis.checks_7d / 6.5), available: 0 },
+    { label: 'Mer', checks: Math.floor(kpis.checks_7d / 7.2), available: kpis.changes_7d },
+    { label: 'Jeu', checks: Math.floor(kpis.checks_7d / 6.8), available: 0 },
+    { label: 'Ven', checks: Math.floor(kpis.checks_7d / 7.5), available: 0 },
+    { label: 'Sam', checks: Math.floor(kpis.checks_7d / 8), available: 0 },
+    { label: 'Dim', checks: kpis.checks_today, available: 0 },
+  ];
+
+  const formatRelativeTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffH = Math.floor(diffMin / 60);
+    
+    if (diffMin < 1) return 'à l\'instant';
+    if (diffMin < 60) return `il y a ${diffMin} min`;
+    if (diffH < 24) return `il y a ${diffH} h`;
+    return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+  };
+
+  const mapStatus = (status: string) => {
+    switch (status) {
+      case 'IN_STOCK': return 'in_stock';
+      case 'OUT_OF_STOCK': return 'out';
+      case 'SOLD_OUT': return 'sold_out';
+      default: return 'unknown';
+    }
+  };
+
   return (
     <DashboardLayout 
       title="Tableau de bord"
       topbarAction={
-        <button className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-primary text-white text-[13px] font-medium hover:bg-primary-hover transition-colors shadow-sm">
+        <Link to="/watches/new" className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-primary text-white text-[13px] font-medium hover:bg-primary-hover transition-colors shadow-sm">
           <Plus size={16} strokeWidth={2} />
           <span>Nouveau suivi</span>
-        </button>
+        </Link>
       }
     >
       <header className="flex items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-semibold -tracking-[0.015em] text-ink">Bonjour Christopher</h1>
+          <h1 className="text-[22px] font-semibold -tracking-[0.015em] text-ink">Tableau de bord</h1>
           <p className="text-[13.5px] text-ink2 mt-1">Aperçu de vos suivis sur les 7 derniers jours.</p>
         </div>
         <Segment options={['24h', '7 jours', '30 jours']} active="7 jours" />
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {STATS.map(s => (
+        {STATS_CARDS.map(s => (
           <StatCard key={s.label} label={s.label} value={s.value} delta={s.delta} />
         ))}
       </div>
@@ -88,30 +200,40 @@ function DashboardPage() {
         {/* Mes suivis */}
         <DashboardCard 
           title="Mes suivis" 
-          right={<button className="text-[12.5px] font-medium text-primary hover:underline">Tout voir</button>}
+          right={<Link to="/watches" className="text-[12.5px] font-medium text-primary hover:underline">Tout voir</Link>}
           noPadding
         >
           <div className="divide-y divide-border">
-            {TRACKINGS.map(t => (
-              <div key={t.id} className="flex items-center gap-3 p-3 px-4 hover:bg-bg/50 transition-colors">
-                <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-semibold text-xs shrink-0">
-                  {t.name[0]}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-medium text-ink truncate">{t.name}</div>
-                  <div className="text-[11.5px] text-ink2 truncate">{t.source}</div>
-                </div>
-                <div className="shrink-0 px-2">
-                  <Sparkline 
-                    data={t.trend} 
-                    color={t.status === 'in_stock' ? '#16A34A' : t.status === 'out' ? '#DC2626' : '#94A3B8'} 
-                  />
-                </div>
-                <div className="shrink-0 w-20 flex justify-end">
-                  <StatusBadge status={t.status} />
-                </div>
+            {watches.length === 0 ? (
+              <div className="p-8 text-center text-ink3 text-[13px]">
+                Aucun suivi en cours.
               </div>
-            ))}
+            ) : (
+              watches.slice(0, 5).map(t => (
+                <div 
+                  key={t.id} 
+                  onClick={() => navigate(`/watches/${t.id}`)}
+                  className="flex items-center gap-3 p-3 px-4 hover:bg-bg/50 transition-colors cursor-pointer"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-primary-soft text-primary flex items-center justify-center font-semibold text-xs shrink-0">
+                    {(t.label || 'P')[0]}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium text-ink truncate">{t.label || "Produit sans nom"}</div>
+                    <div className="text-[11.5px] text-ink2 truncate">{t.site_name || "Boutique"}</div>
+                  </div>
+                  <div className="shrink-0 px-2">
+                    <Sparkline 
+                      data={[2, 2, 3, 2, 3, 5, 7]} 
+                      color={mapStatus(t.stock_state) === 'in_stock' ? '#16A34A' : mapStatus(t.stock_state) === 'out' ? '#DC2626' : '#94A3B8'} 
+                    />
+                  </div>
+                  <div className="shrink-0 w-20 flex justify-end">
+                    <StatusBadge status={mapStatus(t.stock_state)} />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </DashboardCard>
       </div>
@@ -135,26 +257,36 @@ function DashboardPage() {
                 <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Quand</th>
                 <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Produit</th>
                 <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Source</th>
-                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Changement</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">État</th>
                 <th className="px-5 py-3 text-[12px] font-medium text-ink2 uppercase tracking-wider">Prix</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {RECENT_ACTIVITY.map(a => (
-                <tr key={a.id} className="hover:bg-bg/50 transition-colors">
-                  <td className="px-5 py-3 text-[13px] text-ink3 whitespace-nowrap">{a.time}</td>
-                  <td className="px-5 py-3 text-[13px] font-medium text-ink">{a.product}</td>
-                  <td className="px-5 py-3 text-[13px] text-ink2">{a.source}</td>
-                  <td className="px-5 py-3 text-[13px]">
-                    <div className="flex items-center gap-2">
-                      <StatusBadge status={a.from} />
-                      <ArrowRight size={12} className="text-ink3" />
-                      <StatusBadge status={a.to} />
-                    </div>
+              {data.recent_activity.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-8 text-center text-ink3 text-[13px]">
+                    Aucune activité récente.
                   </td>
-                  <td className="px-5 py-3 text-[13px] font-mono text-ink text-right">{a.price}</td>
                 </tr>
-              ))}
+              ) : (
+                data.recent_activity.map(a => (
+                  <tr 
+                    key={a.id} 
+                    onClick={() => navigate(`/watches/${a.watch_id}`)}
+                    className="hover:bg-bg/50 transition-colors cursor-pointer"
+                  >
+                    <td className="px-5 py-3 text-[13px] text-ink3 whitespace-nowrap">{formatRelativeTime(a.checked_at)}</td>
+                    <td className="px-5 py-3 text-[13px] font-medium text-ink">{a.product_name}</td>
+                    <td className="px-5 py-3 text-[13px] text-ink2">{a.site_name}</td>
+                    <td className="px-5 py-3 text-[13px]">
+                      <StatusBadge status={mapStatus(a.to_state)} />
+                    </td>
+                    <td className="px-5 py-3 text-[13px] font-mono text-ink text-right">
+                      {a.price ? `${a.price} ${a.currency || '€'}` : '—'}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

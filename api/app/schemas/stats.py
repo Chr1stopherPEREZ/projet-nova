@@ -10,7 +10,10 @@ from pydantic import BaseModel
 class DashboardKPIs(BaseModel):
     """KPIs pour le tableau de bord utilisateur."""
     active_watches: int
+    in_stock_count: int
+    out_of_stock_count: int
     checks_today: int
+    checks_7d: int
     changes_7d: int
     last_check_at: Optional[datetime]
     errors_7d: int
@@ -26,10 +29,24 @@ class PerformanceRow(BaseModel):
     alerts_sent: int
 
 
+class RecentActivityRow(BaseModel):
+    """Ligne d'activité récente."""
+    id: UUID
+    watch_id: UUID
+    checked_at: datetime
+    product_name: str
+    site_name: Optional[str]
+    from_state: Optional[str]
+    to_state: str
+    price: Optional[float]
+    currency: Optional[str]
+
+
 class UserDashboardResponse(BaseModel):
     """Réponse de GET /stats/dashboard."""
     kpis: DashboardKPIs
     table: List[PerformanceRow]
+    recent_activity: List[RecentActivityRow]
 
 
 class AdminDashboardKPIs(BaseModel):

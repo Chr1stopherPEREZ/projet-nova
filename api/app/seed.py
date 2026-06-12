@@ -34,39 +34,39 @@ SEED_USERS = [
 # --- DONNÉES DE DÉMO (PRODUITS) ---
 PRODUCTS = [
     {
-        "label": "Lampe chauffe-bougie « Halo »",
-        "url": "https://lesprit-belle.test/products/lampe-halo",
-        "domain": "lesprit-belle.test",
+        "label": "Lampe Chauffe-Bougie TWENOW",
+        "url": "https://lesprit-belle.fr/sv/products/lampe-chauffe-bougie-twenow",
+        "domain": "lesprit-belle.fr",
         "shop": "L’Esprit Belle",
         "stock_state": StockState.IN_STOCK
     },
     {
-        "label": "Coffret 3 bougies « Solstice »",
-        "url": "https://cassiopee-bougie.test/products/coffret-solstice",
-        "domain": "cassiopee-bougie.test",
-        "shop": "Cassiopée Bougie",
-        "stock_state": StockState.OUT_OF_STOCK
+        "label": "Coffret Origine",
+        "url": "https://lesprit-belle.fr/sv/collections/bougies-parfumees/products/coffret-origine-1",
+        "domain": "lesprit-belle.fr",
+        "shop": "L’Esprit Belle",
+        "stock_state": StockState.IN_STOCK
     },
     {
-        "label": "Bougie artisanale « Figuier »",
-        "url": "https://cassiopee-bougie.test/products/bougie-figuier",
-        "domain": "cassiopee-bougie.test",
+        "label": "Candle in 300g jars",
+        "url": "https://cassiopee-bougie.myshopify.com/en/products/bougie-en-pots-300g",
+        "domain": "cassiopee-bougie.myshopify.com",
         "shop": "Cassiopée Bougie",
         "stock_state": StockState.IN_STOCK
     },
     {
-        "label": "Montre bois « Horizon »",
-        "url": "https://terre-de-france.test/products/montre-horizon",
-        "domain": "terre-de-france.test",
+        "label": "La Montre Résistance",
+        "url": "https://terredefrance.fr/products/la-montre-resistance",
+        "domain": "terredefrance.fr",
         "shop": "Terre de France",
         "stock_state": StockState.OUT_OF_STOCK
     },
     {
-        "label": "Pull mérinos « Brume »",
-        "url": "https://terre-de-france.test/products/pull-brume",
-        "domain": "terre-de-france.test",
+        "label": "Le sweat “Le Tricolore”",
+        "url": "https://terredefrance.fr/products/le-sweat-tricolore",
+        "domain": "terredefrance.fr",
         "shop": "Terre de France",
-        "stock_state": StockState.SOLD_OUT
+        "stock_state": StockState.IN_STOCK
     }
 ]
 
@@ -155,51 +155,50 @@ def seed_watches(db: Session) -> None:
             
         # --- GARANTIE DE L'HISTORIQUE (Idempotent) ---
         check_count = db.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).count()
-        if check_count < 2:
+        if check_count < 10:
+            print(f"    + Génération d'historique (10 checks) pour: {p['label']}")
+            # On enrichit l'historique pour le dashboard Nova V2
+            db.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).delete()
+            
             now = datetime.now(timezone.utc)
-            # Ajout de l'historique manquant
-            if check_count == 0:
-                # Création de 2 checks si aucun
+            for i in range(10):
+                # Répartition sur les 7 derniers jours
+                checked_at = now - timedelta(days=(9-i)*0.7)
+                
+                # On simule un changement d'état pour certains produits
+                state = p["stock_state"].value
+                if i < 3 and p["stock_state"] == StockState.IN_STOCK:
+                    state = StockState.OUT_OF_STOCK.value
+                
+                # Détails avec prix et devise pour la démo
+                price = 35.0
+                if "cassiopee" in p["url"]: price = 21.0
+                elif "terredefrance" in p["url"]: 
+                    price = 185.0 if "resistance" in p["url"] else 65.0
+                
+                currency = "CHF" if "cassiopee" in p["url"] else "EUR"
+                
                 db.add(WatchCheck(
                     watch_id=watch.id,
-                    checked_at=now - timedelta(days=2),
-                    stock_state=StockState.OUT_OF_STOCK.value,
+                    checked_at=checked_at,
+                    stock_state=state,
                     fetch_mode="FIXTURE",
                     http_status=200,
-                    details={"info": "Initial state"}
+                    details={
+                        "info": "Seed V2",
+                        "price": price,
+                        "currency": currency,
+                        "changed": i == 3 # Simuler un changement au 4ème check
+                    }
                 ))
-                db.add(WatchCheck(
-                    watch_id=watch.id,
-                    checked_at=now - timedelta(hours=5),
-                    stock_state=p["stock_state"].value,
-                    fetch_mode="FIXTURE",
-                    http_status=200,
-                    details={"info": "Last check"}
-                ))
-                print(f"    + Historique créé (2 checks) pour: {p['label']}")
-            elif check_count == 1:
-                # Ajout d'un 2ème check si un seul présent
-                db.add(WatchCheck(
-                    watch_id=watch.id,
-                    checked_at=now - timedelta(hours=5),
-                    stock_state=p["stock_state"].value,
-                    fetch_mode="FIXTURE",
-                    http_status=200,
-                    details={"info": "Complementary check"}
-                ))
-                print(f"    + Historique complété (1 check ajouté) pour: {p['label']}")
         else:
             print(f"    . Historique déjà présent ({check_count} checks) pour: {p['label']}")
-            # Mise à jour du dernier check pour refléter l'état actuel (cohérence démo)
-            last_check = db.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).order_by(WatchCheck.checked_at.desc()).first()
-            if last_check and last_check.stock_state != p["stock_state"].value:
-                last_check.stock_state = p["stock_state"].value
-                print(f"    * Dernier check mis à jour vers {p['stock_state'].value} pour: {p['label']}")
             
     db.commit()
 
 def cleanup_old_demo_data(db: Session) -> None:
-    """Supprime les anciens comptes de démo s'ils existent."""
+    """Supprime les anciens comptes de démo et les suivis obsolètes."""
+    # 1. Nettoyage des comptes
     emails_to_remove = [
         "demo@nova.dev",
         "christopher@example.test",
@@ -214,6 +213,40 @@ def cleanup_old_demo_data(db: Session) -> None:
         if old_user:
             print(f"[seed] Nettoyage : suppression de l'ancien compte {email}...")
             db.delete(old_user)
+    
+    # 2. Nettoyage des suivis de l'utilisateur démo (user@nova.dev)
+    # On ne garde que les URLs définies dans PRODUCTS
+    user_email = "user@nova.dev"
+    user = db.query(User).filter(User.email == user_email).first()
+    if user:
+        valid_urls = [p["url"] for p in PRODUCTS]
+        old_watches = db.query(Watch).filter(
+            Watch.user_id == user.id,
+            ~Watch.original_url.in_(valid_urls)
+        ).all()
+        
+        for ow in old_watches:
+            print(f"[seed] Nettoyage : suppression de l'ancien suivi {ow.label} ({ow.original_url})")
+            # Les WatchCheck seront supprimés en cascade si la relation est configurée (souvent le cas)
+            # Sinon on peut les supprimer manuellement si besoin, mais SQLAlchemy gère souvent ça.
+            db.delete(ow)
+            
+    # 3. Nettoyage des profils de site orphelins (optionnel mais propre)
+    # On garde les domaines de PRODUCTS + ceux utilisés par d'autres montres
+    valid_domains = [p["domain"] for p in PRODUCTS]
+    # On récupère tous les domaines encore utilisés
+    used_profile_ids = [r[0] for r in db.query(Watch.site_profile_id).filter(Watch.site_profile_id.isnot(None)).distinct().all()]
+    
+    # Suppression des profils qui ne sont pas dans PRODUCTS ET ne sont plus utilisés
+    orphan_profiles = db.query(SiteProfile).filter(
+        ~SiteProfile.domain_pattern.in_(valid_domains),
+        ~SiteProfile.id.in_(used_profile_ids)
+    ).all()
+    
+    for op in orphan_profiles:
+        print(f"[seed] Nettoyage : suppression du profil de site orphelin {op.domain_pattern}")
+        db.delete(op)
+
     db.commit()
 
 def main() -> None:

@@ -8,15 +8,18 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.csrf import verify_csrf
 from app.core.exceptions import raise_api_error
 from app.models.user import User
 from app.models.watch import Watch, WatchStatus, StockState
+from app.models.watch_check import WatchCheck
 from app.schemas.watch import WatchCreate, WatchOut, WatchUpdate, PreviewRequest, PreviewResponse, WatchCheckOut
 from app.api.deps import get_current_user
 from app.services.nike_parser import fetch_preview as fetch_nike_preview
 from app.services.shopify_parser import is_shopify_url, fetch_shopify_preview
+from app.services.check_engine import run_check
 
 router = APIRouter(prefix="/watches", tags=["watches"])
 
@@ -86,9 +89,13 @@ def create_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        created_at=watch.created_at,
         variant_sku=watch.variant_sku,
         variant_selector=watch.variant_selector,
         variant_meta=watch.variant_meta,
+        site_name=None,
+        last_price=None,
+        last_currency=None,
     )
 
 
@@ -102,21 +109,29 @@ def list_watches(
     Auth obligatoire.
     """
     watches = db.query(Watch).filter(Watch.user_id == current_user.id).options(joinedload(Watch.site_profile)).all()
-    return [
-        WatchOut(
+    
+    results = []
+    for w in watches:
+        last_check = db.query(WatchCheck).filter(WatchCheck.watch_id == w.id).order_by(WatchCheck.checked_at.desc()).first()
+        last_price = last_check.details.get("price") if last_check and last_check.details else None
+        last_currency = last_check.details.get("currency") if last_check and last_check.details else None
+        
+        results.append(WatchOut(
             id=w.id,
             url=w.original_url,
             label=w.label,
             status=w.watch_status.value,
             stock_state=w.stock_state.value,
             last_checked_at=w.last_checked_at,
+            created_at=w.created_at,
             variant_sku=w.variant_sku,
             variant_selector=w.variant_selector,
             variant_meta=w.variant_meta,
             site_name=w.site_profile.name if w.site_profile else None,
-        )
-        for w in watches
-    ]
+            last_price=last_price,
+            last_currency=last_currency,
+        ))
+    return results
 
 
 @router.get("/{watch_id}", response_model=WatchOut)
@@ -132,7 +147,7 @@ def get_watch(
     watch = db.query(Watch).filter(
         Watch.id == watch_id,
         Watch.user_id == current_user.id,
-    ).first()
+    ).options(joinedload(Watch.site_profile)).first()
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -142,6 +157,11 @@ def get_watch(
                 "details": {"watch_id": str(watch_id)}
             },
         )
+    
+    last_check = db.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).order_by(WatchCheck.checked_at.desc()).first()
+    last_price = last_check.details.get("price") if last_check and last_check.details else None
+    last_currency = last_check.details.get("currency") if last_check and last_check.details else None
+
     return WatchOut(
         id=watch.id,
         url=watch.original_url,
@@ -149,9 +169,13 @@ def get_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        created_at=watch.created_at,
         variant_sku=watch.variant_sku,
         variant_selector=watch.variant_selector,
         variant_meta=watch.variant_meta,
+        site_name=watch.site_profile.name if watch.site_profile else None,
+        last_price=last_price,
+        last_currency=last_currency,
     )
 
 
@@ -170,7 +194,7 @@ def update_watch(
     watch = db.query(Watch).filter(
         Watch.id == watch_id,
         Watch.user_id == current_user.id,
-    ).first()
+    ).options(joinedload(Watch.site_profile)).first()
     if not watch:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -195,6 +219,10 @@ def update_watch(
     db.commit()
     db.refresh(watch)
 
+    last_check = db.query(WatchCheck).filter(WatchCheck.watch_id == watch.id).order_by(WatchCheck.checked_at.desc()).first()
+    last_price = last_check.details.get("price") if last_check and last_check.details else None
+    last_currency = last_check.details.get("currency") if last_check and last_check.details else None
+
     return WatchOut(
         id=watch.id,
         url=watch.original_url,
@@ -202,9 +230,13 @@ def update_watch(
         status=watch.watch_status.value,
         stock_state=watch.stock_state.value,
         last_checked_at=watch.last_checked_at,
+        created_at=watch.created_at,
         variant_sku=watch.variant_sku,
         variant_selector=watch.variant_selector,
         variant_meta=watch.variant_meta,
+        site_name=watch.site_profile.name if watch.site_profile else None,
+        last_price=last_price,
+        last_currency=last_currency,
     )
 
 
@@ -236,6 +268,49 @@ def delete_watch(
     db.delete(watch)
     db.commit()
     return None
+
+
+@router.post("/{watch_id}/check", response_model=WatchCheckOut)
+def manual_check_watch(
+    watch_id: UUID,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    _: None = Depends(verify_csrf),
+):
+    """
+    Déclenche une vérification manuelle immédiate.
+    Auth + CSRF obligatoires.
+    """
+    watch = db.query(Watch).filter(
+        Watch.id == watch_id,
+        Watch.user_id == current_user.id,
+    ).first()
+    
+    if not watch:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail={
+                "code": "WATCH_NOT_FOUND",
+                "message": "Suivi introuvable",
+                "details": {"watch_id": str(watch_id)}
+            },
+        )
+
+    # Exécuter le check via le moteur (réutilise le mode fixture configuré)
+    try:
+        check, _, _ = run_check(
+            db=db,
+            watch=watch,
+            fixture_name=settings.fixture_name,
+            commit=True
+        )
+        return WatchCheckOut.model_validate(check)
+    except Exception as e:
+        raise_api_error(
+            code="CHECK_FAILED",
+            message=f"La vérification a échoué: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @router.get("/{watch_id}/checks", response_model=list[WatchCheckOut])

@@ -15,6 +15,8 @@ interface Watch {
   last_checked_at: string | null;
   site_name: string | null;
   variant_sku?: string | null;
+  last_price?: number | null;
+  last_currency?: string | null;
 }
 
 /**
@@ -131,7 +133,7 @@ export default function WatchesPage() {
     if (sortBy === 'date') {
       const da = a.last_checked_at ? new Date(a.last_checked_at).getTime() : 0;
       const db = b.last_checked_at ? new Date(b.last_checked_at).getTime() : 0;
-      return db - da; // Du plus récent au plus ancien
+      return db - da; /* Du plus récent au plus ancien */
     }
     if (sortBy === 'name') {
       return (a.label || '').localeCompare(b.label || '', 'fr');
@@ -353,8 +355,11 @@ export default function WatchesPage() {
                             <StatusBadge status={mappedStatus} />
                           </td>
                           <td className="px-4 py-3.5 font-mono text-ink">
-                            {/* Note: Le prix reste mocké ou non disponible dans WatchOut pour l'instant */}
-                            —
+                            {it.last_price != null ? (
+                              `${it.last_price.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} ${it.last_currency || '€'}`
+                            ) : (
+                              '—'
+                            )}
                           </td>
                           <td className="px-4 py-3.5">
                             {/* Note: La tendance reste mockée pour l'instant */}
