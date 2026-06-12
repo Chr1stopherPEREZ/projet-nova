@@ -27,7 +27,7 @@ export default function ResetPasswordPage() {
     <AuthShell step="reset">
       <h1 className="text-2xl font-semibold -tracking-[0.02em] mb-1.5">Nouveau mot de passe</h1>
       <p className="text-sm text-ink2 mb-7">
-        Choisissez un nouveau mot de passe pour le compte <strong className="text-ink">christopher@example.test</strong>.
+        Choisissez un nouveau mot de passe pour le compte <strong className="text-ink">christopher@nova.dev</strong>.
       </p>
 
       <form className="flex flex-col gap-3.5" onSubmit={handleSubmit}>

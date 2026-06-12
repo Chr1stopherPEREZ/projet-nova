@@ -5,7 +5,7 @@ import { AuthShell, Field } from '../components/auth/AuthShell';
 
 export default function ForgotPasswordPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('christopher@example.test');
+  const [email, setEmail] = useState('christopher@nova.dev');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
