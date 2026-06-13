@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     id: UUID
     email: str
     role: str
+    unread_notifications_count: int = 0
 
     model_config = {"from_attributes": True}
 

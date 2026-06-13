@@ -28,11 +28,11 @@ const SYSTEM = [
 ];
 
 const USERS = [
-  { id: 1, name: 'Christopher', email: 'christopher@example.test', role: 'Admin', count: 3, status: 'active', joined: '01 avr. 2026' },
-  { id: 2, name: 'Florent', email: 'florent@example.test', role: 'Utilisateur', count: 2, status: 'active', joined: '02 mai 2026' },
-  { id: 3, name: 'Quentin', email: 'quentin@example.test', role: 'Utilisateur', count: 2, status: 'active', joined: '08 mai 2026' },
-  { id: 4, name: 'Mathis', email: 'mathis@example.test', role: 'Utilisateur', count: 1, status: 'active', joined: '12 mai 2026' },
-  { id: 5, name: 'Estelle', email: 'estelle@example.test', role: 'Utilisateur', count: 1, status: 'active', joined: 'Hier' },
+  { id: 1, name: 'Christopher', email: 'christopher@nova.dev', role: 'Admin', count: 3, status: 'active', joined: '01 avr. 2026' },
+  { id: 2, name: 'Florent', email: 'florent@nova.dev', role: 'Utilisateur', count: 2, status: 'active', joined: '02 mai 2026' },
+  { id: 3, name: 'Quentin', email: 'quentin@nova.dev', role: 'Utilisateur', count: 2, status: 'active', joined: '08 mai 2026' },
+  { id: 4, name: 'Mathis', email: 'mathis@nova.dev', role: 'Utilisateur', count: 1, status: 'active', joined: '12 mai 2026' },
+  { id: 5, name: 'Estelle', email: 'estelle@nova.dev', role: 'Utilisateur', count: 1, status: 'active', joined: 'Hier' },
 ];
 
 function AdminDashboardPage() {
