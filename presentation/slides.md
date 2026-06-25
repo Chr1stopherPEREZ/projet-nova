@@ -5,17 +5,17 @@ class: text-center
 highlighter: shiki
 lineNumbers: true
 info: |
-  ## Présentation Rattrapage CDA - Projet Nova
+  ## Présentation CDA - Projet Nova
   Christopher Perez
 drawings:
   persist: false
 transition: slide-left
-title: Nova - Soutenance de rattrapage CDA
+title: Nova - Soutenance CDA
 ---
 
-# Nova
+# Nova V2
 ## Application de suivi de disponibilité produit
-### Soutenance de rattrapage CDA
+### Soutenance de titre CDA
 
 <div class="pt-12">
   <span class="px-2 py-1 rounded">
@@ -26,348 +26,278 @@ title: Nova - Soutenance de rattrapage CDA
 <!--
 Notes orateur :
 - Bonjour à tous, je m'appelle Christopher Perez.
-- Je vous présente Nova V2, une application de veille de stock e-commerce.
+- Je vous présente Nova V2, une solution automatisée pour surveiller la disponibilité des produits e-commerce.
 - Cette présentation est structurée autour des compétences du titre CDA démontrées par ce projet.
+- Chaque partie montrera comment Nova apporte une preuve concrète de ces compétences.
 -->
 
 ---
 
-# 1. Introduction rapide
+# 1. Introduction
 
-*   **Nova** : Solution d'automatisation de veille produit (disponibilité et prix).
-*   **Problème** : Ruptures de stock fréquentes, perte de temps à vérifier manuellement.
-*   **Objectif V2** : Une version stable, sécurisée et reproductible, prête pour la démonstration.
+*   **Besoin** : Ruptures de stock fréquentes et vérifications manuelles chronophages.
+*   **Solution Nova** : Dashboard centralisé, historisation des vérifications et test de notification via Mailhog.
 *   **Parcours central** :
-    1. Créer un suivi via une URL.
-    2. Analyser la page produit (Preview).
-    3. Déclencher des vérifications via le worker.
-    4. Historiser et tester une notification via Mailhog.
+    1. Créer un suivi (URL) → 2. Analyser le produit (Preview) → 3. Déclencher une vérification (Worker) → 4. Historiser (DB) → 5. Tester une notification via Mailhog.
+*   **Objectif V2** : Une version stable, sécurisée et reproductible, alignée sur les attendus du titre.
 
 <!--
 Notes orateur :
 - L'idée est de passer d'une vérification manuelle frustrante à un dashboard automatisé.
 - La V2 se concentre sur la robustesse technique et la fiabilité des données.
+- Je vais maintenant détailler comment Nova répond aux compétences du référentiel.
 -->
 
 ---
 
-# 2. Analyser le besoin et cadrer le projet
+# 2. Contribuer à la gestion d’un projet
 
-### Compétence : "Analyser les besoins et maquetter une application"
+### Compétence CDA : "Planifier, suivre et assurer la qualité du projet"
 
-*   **Réalisé** : Étude du contexte métier (e-commerce), définition du périmètre V2 (fiabilité) vs V3 (scaling).
-*   **Preuve** : Dossier projet section "Analyse" et Backlog consolidé.
+*   **Réalisation** : Backlog Jira consolidé, découpage en lots, gestion des risques.
+*   **Outils** : Jira (planification), Git (versioning), Docker (environnement).
 
 | Point clé | Détail Nova |
 | :--- | :--- |
-| **Périmètre V2** | Focus sur le moteur de check déterministe et la sécurité JWT/CSRF. |
-| **Backlog** | Gestion agile des US : "En tant qu'utilisateur, je veux être alerté du retour en stock". |
-| **Gestion des risques** | Identification des instabilités du web réel -> Solution : Mode Fixture. |
+| **Planification** | Backlog agile avec US priorisées (EPIC A à G). |
+| **Qualité** | Linting (ESLint), typage (TS/Python), tests automatiques. |
+| **Risques** | Identification des instabilités web → Solution : Mode Fixture pour la démo. |
+| **Preuves** | Backlog CSV, Historique Git, Dossier projet (section Gestion). |
 
 <!--
 Notes orateur :
-- J'ai cadré le projet pour répondre aux contraintes du titre : sécurité, persistance et architecture propre.
-- Le backlog a permis de prioriser les fonctionnalités essentielles pour cette soutenance.
+- J'ai utilisé une démarche agile pour prioriser le "Must Have" (Auth, CRUD, Worker).
+- L'arbitrage V2/V3 a été crucial pour garantir une version démontrable et stable dans les temps.
+- Les preuves sont disponibles dans le dossier projet et via le backlog consolidé fourni.
 -->
 
 ---
 
-# 3. Concevoir l’application
+# 3. Analyser les besoins et maquetter
 
-### Compétence : "Concevoir une application et sa base de données"
+### Compétence CDA : "Formaliser les besoins et concevoir l'UX/UI"
 
-*   **Réalisé** : Architecture n-tiers, Modélisation relationnelle (MCD/MLD), Diagrammes de flux.
-*   **Preuve** : Schémas d'architecture et diagrammes de classes dans le dossier.
+*   **Réalisation** : Étude personas, User Stories, parcours utilisateur et maquettes Figma.
+*   **Focus** : Simplicité du parcours "Ajout de suivi".
 
-*   **Architecture** : Séparation stricte Frontend (React) / Backend (FastAPI) / Worker / DB.
-*   **Modélisation** : Structure orientée historisation (Watch -> WatchCheck).
-*   **Choix techniques** : PostgreSQL pour la robustesse, Docker pour la portabilité.
+*   **User Story** : "En tant qu'utilisateur, je veux coller une URL pour voir si le produit est disponible".
+*   **Maquettage** : Wireframes basse fidélité → Prototypes haute fidélité (Figma).
+*   **Preuves** : Dossier projet, captures `docs/proofs/v2-design` (Application Map, Style Guide).
 
 <!--
 Notes orateur :
-- L'architecture est modulaire : le worker peut évoluer sans impacter l'API.
-- La base de données est conçue pour garder une trace de chaque changement de prix ou d'état.
+- L'analyse a permis de définir le parcours central pour éviter que l'utilisateur ne se perde.
+- J'ai conçu des maquettes pour valider l'ergonomie (Navigation, Dashboard) avant de coder.
+- J'ai pris en compte les contraintes d'accessibilité (contraste, labels) dès la conception.
 -->
 
 ---
 
-# 4. Use Case Complet : De l'URL à l'historique
+# 4. Définir l’architecture logicielle
 
-### Objectif : Démontrer la compréhension du trajet de la donnée
+### Compétence CDA : "Concevoir une architecture multicouche sécurisée"
 
-*   **Scénario** : Un utilisateur crée un suivi, lance une vérification et consulte le résultat.
-*   **Flux** : UI → API → Moteur métier → Base de données → Worker → Notification → Retour UI.
+*   **Réalisation** : Architecture Monorepo avec séparation stricte des responsabilités.
+*   **Stack** : React (Web) + FastAPI (API) + PostgreSQL (DB) + Worker (Batch).
 
-<div class="mt-10 flex justify-center items-center">
-  <div class="bg-blue-100 p-4 rounded-lg shadow">
-    Utilisateur → React → FastAPI → Moteur → PostgreSQL → Historique → Interface
-  </div>
-</div>
+*   **Sécurité** : Communication via API REST, isolation des services par Docker.
+*   **Extensibilité** : Moteur de parsing modulaire (Shopify, Fixture).
+*   **Preuves** : Schéma d'architecture, `docker-compose.yml`, structure des dossiers.
 
 <!--
 Notes orateur :
-- Pour prouver ma maîtrise, je vais détailler le cheminement d'une donnée à travers toutes les couches de l'application.
+- J'ai choisi une architecture multicouche pour faciliter la maintenance et l'évolution.
+- Le backend FastAPI génère automatiquement une doc Swagger, point d'entrée technique clair.
+- Docker Compose orchestre l'ensemble des 5 services (Web, API, DB, Worker, Mailhog).
 -->
 
 ---
 
-# 5. Étape 1 : Interface utilisateur (Frontend)
+# 5. Développer des interfaces utilisateur
 
-*   **Action** : L'utilisateur saisit l'URL d'un produit.
-*   **Réalisation** : Formulaire React avec validation et appel asynchrone à l'API.
+### Compétence CDA : "Développer des interfaces sécurisées et adaptées"
 
-```tsx
-// Snippet : Appel à l'API pour créer le suivi
-const res = await apiFetch('/watches', {
-  method: 'POST',
-  body: JSON.stringify({ url, variant_sku: selectedVariantSku })
-});
-```
+*   **Réalisation** : SPA avec React, Vite, TypeScript et Tailwind CSS.
+*   **Fonctionnalités** : Dashboard, Preview produit, Historique dynamique.
 
-*   **Compétence** : Développer une interface utilisateur web dynamique.
-*   **Note orateur** : "Ici, le frontend React prépare le payload JSON et gère l'état de chargement pendant l'appel API."
-
----
-
-# 6. Étape 2 : API et Validation (Backend)
-
-*   **Action** : L'API reçoit la requête et valide les données.
-*   **Réalisation** : Route FastAPI avec injection de dépendances et schémas Pydantic.
-
-```python
-@router.post("", response_model=WatchOut)
-def create_watch(
-    watch_data: WatchCreate,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    watch = Watch(**watch_data.model_dump(), user_id=current_user.id)
-    db.add(watch)
-    db.commit()
-    return watch
-```
-
-*   **Compétence** : Développer des composants métier.
-*   **Note orateur** : "L'API sécurise l'entrée grâce à Pydantic, garantissant que seule une donnée propre arrive dans le service métier."
-
----
-
-# 7. Étape 3 : Moteur métier (Check Engine)
-
-*   **Action** : Le backend analyse le contenu de la page (ou fixture).
-*   **Réalisation** : Logique de parsing pour déterminer l'état du stock.
-
-```python
-def analyze_fixture(content: bytes) -> StockState:
-    text = content.decode("utf-8")
-    if "ADD_TO_CART" in text:
-        return StockState.IN_STOCK
-    return StockState.OUT_OF_STOCK
-```
-
-*   **Compétence** : Implémenter la logique métier complexe.
-*   **Note orateur** : "C'est le coeur de Nova : le moteur extrait l'état réel du produit à partir du code HTML ou d'un flux JSON Shopify."
-
----
-
-# 8. Étape 4 : Persistance et Historique (DB)
-
-*   **Action** : Enregistrement de l'état et création d'une ligne d'historique.
-*   **Réalisation** : Modèle SQLAlchemy avec relations One-to-Many.
-
-```python
-class Watch(Base):
-    id = Column(Uuid, primary_key=True)
-    stock_state = Column(Enum(StockState))
-    checks = relationship("WatchCheck", back_populates="watch")
-
-# Un nouveau WatchCheck est créé à chaque vérification
-```
-
-*   **Compétence** : Concevoir et exploiter une base de données relationnelle.
-*   **Note orateur** : "Chaque vérification est une preuve immuable en base de données, permettant de tracer l'évolution du produit."
-
----
-
-# 9. Étape 5 : Worker et Notification
-
-*   **Action** : Traitement asynchrone et alerte utilisateur.
-*   **Réalisation** : Worker indépendant et service SMTP (Mailhog).
-
-```python
-# Worker déclenchant l'envoi
-if check.stock_state == "IN_STOCK":
-    email_service.send(to=user.email, subject="Produit disponible !")
-```
-
-*   **Compétence** : Développer des composants d'accès aux données / services tiers.
-*   **Note orateur** : "Le worker représente le traitement en arrière-plan chargé d’exécuter les vérifications. Si l'état change, il utilise le service de notification pour alerter l'utilisateur via Mailhog."
-
----
-
-# 10. Synthèse du flux de données
-
-1.  **Frontend** : Capture de l'intention (URL).
-2.  **API** : Porte d'entrée sécurisée et validation.
-3.  **Service** : Intelligence de parsing et détection d'état.
-4.  **Database** : Mémoire persistante et historisation.
-5.  **Worker** : Automatisation du cycle de vie.
-6.  **Notification** : Boucle de retour vers l'utilisateur.
-
-*   **Maîtrise** : Compréhension de la chaîne de valeur technique complète.
+*   **Sécurité** : `ProtectedRoute`, gestion du token CSRF dans le client API.
+*   **UX** : États de chargement, gestion des erreurs (404, 403), responsive design.
+*   **Preuves** : Code `/web/src`, captures Dashboard et Detail (`lot7`), build/lint OK.
 
 <!--
 Notes orateur :
-- Ce flux démontre que je maîtrise l'intégralité du cycle de vie d'une donnée dans une application moderne.
+- L'interface utilise Tailwind pour un design moderne et responsive.
+- Le client API centralise les appels et injecte automatiquement le header CSRF pour les actions mutatives.
+- J'ai implémenté des routes protégées pour garantir que seuls les utilisateurs authentifiés accèdent aux données.
 -->
 
 ---
 
-# 11. Développer l’interface utilisateur
+# 6. Développer des composants métier
 
-### Compétence : "Développer la partie front-end d'une application"
+### Compétence CDA : "Développer la partie dynamique sécurisée"
 
-*   **Réalisé** : SPA avec React, Vite, TypeScript et Tailwind CSS.
-*   **Preuve** : Code source dans `/web/src` et captures d'écran Dashboard.
+*   **Réalisation** : API FastAPI avec validation Pydantic et moteur de check.
+*   **Logique** : Parsing HTML/JSON, détection des états `IN_STOCK` / `OUT_OF_STOCK`.
 
-*   **Composants** : Découpage atomique (Buttons, Inputs, Layouts).
-*   **Gestion d'état** : Hooks React (useState, useEffect) et services API centralisés.
-*   **UX/UI** : Interface moderne, responsive et claire (Tailwind).
-*   **Protection** : Composant `ProtectedRoute` pour filtrer les accès non-authentifiés.
+*   **Sécurité** : Authentification par Cookie HttpOnly, hashage Argon2id.
+*   **Défensif** : Validation stricte des entrées via schémas, gestion des exceptions métier.
+*   **Preuves** : Routes API, Tests Pytest (107 passed), documentation Swagger UI.
 
 <!--
 Notes orateur :
-- J'ai utilisé TypeScript pour sécuriser le développement et éviter les erreurs de type courantes.
-- Tailwind m'a permis d'avoir un design cohérent et professionnel très rapidement.
+- FastAPI garantit la performance et la sécurité grâce au typage Python et à Pydantic.
+- Le moteur de check est le cœur du projet : il analyse les pages produits de manière asynchrone.
+- Le code est structuré en services (Email, Check Engine, Auth) pour une meilleure modularité.
 -->
 
 ---
 
-# 12. Développer le backend et les composants métier
+# 7. Concevoir une base de données relationnelle
 
-### Compétence : "Développer la partie back-end d'une application"
+### Compétence CDA : "Modéliser et mettre en place la persistance"
 
-*   **Réalisé** : API REST avec FastAPI, services de parsing Shopify et moteur de vérification.
-*   **Preuve** : Code source dans `/api/app` et documentation Swagger.
+*   **Réalisation** : Schéma PostgreSQL optimisé pour l'historisation.
+*   **Modélisation** : Relations 1:N entre Utilisateurs → Suivis (Watches) → Vérifications (Checks).
 
-*   **Modularité** : Services séparés pour les parsers, l'email et le moteur de check.
-*   **Structure** : API claire, services séparés et typage Python pour faciliter la maintenance.
+*   **Intégrité** : Contraintes `UniqueConstraint` (URL+Variant) et clés étrangères SQL.
+*   **Évolutivité** : Gestion des versions de schéma via migrations Alembic.
+*   **Preuves** : Schéma Merise (MCD/MLD), migrations Alembic, script `seed.py`.
 
 <!--
 Notes orateur :
-- FastAPI a été choisi pour sa performance et sa capacité à générer une documentation interactive automatiquement.
-- Le code est structuré de manière à pouvoir ajouter de nouveaux sites à surveiller facilement.
+- La base de données est conçue pour garder une trace immuable de chaque vérification effectuée.
+- Alembic me permet de faire évoluer la base de manière reproductible sur tous les environnements.
+- J'ai créé un jeu d'essai complet (seed) pour sécuriser la démonstration.
 -->
 
 ---
 
-# 13. Concevoir et exploiter la base de données
+# 8. Développer des composants d’accès aux données
 
-### Compétence : "Concevoir et mettre en place une base de données"
+### Compétence CDA : "Gérer les manipulations de données sécurisées"
 
-*   **Réalisé** : Schéma PostgreSQL, migrations Alembic, requêtes SQLAlchemy.
-*   **Preuve** : Fichiers de migration et schéma ERD.
+*   **Réalisation** : Utilisation de SQLAlchemy (ORM) avec style défensif.
+*   **Confidentialité** : Filtrage systématique par `user_id` pour chaque requête SQL.
 
-*   **Alembic** : Gestion des versions de la base de données (évolution fluide).
-*   **Contraintes** : `UniqueConstraint` sur URL + Variant pour éviter les doublons.
-*   **Indexation** : Index sur les IDs et emails pour des recherches rapides.
+*   **Transactions** : Gestion des sessions et rollbacks via context managers FastAPI.
+*   **Validation** : Vérification de la propriété de la donnée avant toute modification (DELETE/PATCH).
+*   **Preuves** : Modèles SQLAlchemy, services CRUD, tests unitaires d'accès.
 
 <!--
 Notes orateur :
-- La base de données est le socle de l'application.
-- L'utilisation d'Alembic permet de déployer les changements de schéma de manière reproductible sur tous les environnements.
+- L'utilisation d'un ORM et de requêtes paramétrées protège contre les injections SQL.
+- J'ai porté une attention particulière à l'isolation des données : un utilisateur ne peut jamais interférer avec les suivis d'un autre.
 -->
 
 ---
 
-# 14. Sécuriser l’application
+# 9. Sécuriser l’application (Synthèse)
 
-### Compétence : "Sécuriser une application et ses données"
+### "La sécurité n'est pas une option, c'est une compétence"
 
-*   **Réalisé** : Authentification JWT, protection CSRF, isolation des données.
-*   **Preuve** : Dossier projet section "Sécurité" et tests des routes protégées.
-
-*   **JWT HttpOnly** : Cookie sécurisé pour prévenir les failles XSS.
-*   **CSRF** : Double Submit Cookie pour les actions critiques.
-*   **Isolation** : Requêtes SQL systématiquement filtrées par `user_id`.
-*   **Validation** : Pydantic pour bloquer les injections de données malformées.
+*   **Protections** : Authentification, cookie HttpOnly, CSRF, validation backend et isolation des données.
+*   **Données** : Hashage Argon2id, validation Pydantic, isolation par utilisateur.
+*   **Preuves** : Code `core/csrf.py`, dossier projet section "Sécurité", figure flux CSRF.
 
 <!--
 Notes orateur :
-- J’ai mis en place plusieurs protections attendues : authentification, cookie HttpOnly, CSRF, validation backend et filtrage par utilisateur.
-- L'utilisation de cookies HttpOnly est un standard de l'industrie pour protéger les tokens.
+- J’ai mis en place plusieurs protections attendues sur une application web : authentification, cookie HttpOnly, CSRF, validation backend et isolation des données.
+- Le CSRF est ici systématiquement vérifié par une dépendance globale au niveau des routes mutatives.
+- Les erreurs sont gérées pour ne pas divulguer d'informations sensibles sur l'infrastructure.
 -->
 
 ---
 
-# 15. Tester, valider et documenter
+# 10. Préparer et exécuter les plans de tests
 
-### Compétence : "Tester et valider une application avant déploiement"
+### Compétence CDA : "Garantir le fonctionnement et la non-régression"
 
-*   **Réalisé** : Tests unitaires, documentation API, environnement Docker.
-*   **Preuve** : Rapport Pytest et Swagger UI.
+*   **Réalisation** : Suite de tests automatisés avec Pytest sur les principales fonctionnalités backend.
+*   **Tests** : Unitaires (parsers), Intégration (API), Sécurité (Auth/CSRF).
 
-*   **Pytest** : Suite de tests couvrant le moteur de check et l'authentification.
-*   **Swagger** : Documentation interactive pour consulter et tester les routes API.
-*   **Mode Fixture** : Fiabilisation de la démo en utilisant des données contrôlées.
+*   **Mode Fixture** : Utilisation de fichiers HTML locaux pour tester le moteur sans dépendre du web réel.
+*   **Qualité** : Linting ESLint et build de production validés (Zéro erreur bloquante).
+*   **Preuves** : Captures `pytest passed`, logs de build, Swagger UI pour tests manuels.
 
 <!--
 Notes orateur :
-- Les tests m’ont permis de vérifier le parcours principal et de sécuriser les corrections apportées en V2.
-- Le mode fixture garantit que ma démo fonctionnera même sans connexion internet stable.
+- Les tests couvrent le parcours critique : inscription, création de suivi, parsing et notifications.
+- Le mode fixture est une stratégie qui a fiabilisé ma démonstration et mes tests d'intégration.
+- La non-régression est assurée par l'exécution de la suite de tests avant chaque livraison.
 -->
 
 ---
 
-# 16. Préparer le déploiement
+# 11. Préparer et documenter le déploiement
 
-### Compétence : "Préparer et accompagner le déploiement"
+### Compétence CDA : "Rendre l'application installable et documentée"
 
-*   **Réalisé** : Orchestration multi-services avec Docker Compose.
-*   **Preuve** : Fichier `docker-compose.yml` et images Docker.
+*   **Réalisation** : Orchestration Docker Compose pour un déploiement reproductible.
+*   **Documentation** : README complet (procédure de lancement) et dossier technique PDF.
 
-*   **Conteneurisation** : Images légères et isolées pour chaque service.
-*   **Reproductibilité** : Environnement local cohérent grâce à Docker Compose.
-*   **Services** : API, Web, Postgres, Worker, Mailhog.
+*   **Configuration** : Gestion des secrets via variables d'environnement (`.env`).
+*   **Services** : 5 conteneurs isolés (Web, API, DB, Worker, Mailhog).
+*   **Preuves** : Fichier `docker-compose.yml`, capture `docker compose ps`, README.md.
 
 <!--
 Notes orateur :
-- Docker Compose permet de reproduire l’environnement localement et de préparer une future mise en production.
-- Cette approche facilite aussi grandement le travail collaboratif et l'intégration continue.
+- L'application est portable. Docker Compose permet de reproduire l’environnement localement avec les services nécessaires.
+- La documentation technique détaille la procédure pour passer du mode fixture au mode live.
 -->
 
 ---
 
-# 17. Démonstration (Plan)
+# 12. Démarche DevOps
 
-1.  **Connexion** : Espace sécurisé.
-2.  **Dashboard** : Vision globale.
-3.  **Création** : URL -> Preview -> Validation.
-4.  **Vérification** : Déclenchement d'un check sur une fixture.
-5.  **Alerte** : Réception du mail dans Mailhog.
-6.  **Historique** : Visualisation du changement d'état.
-7.  **Swagger** : Un oeil sur les coulisses de l'API.
+### Compétence CDA : "Automatiser et collaborer efficacement"
+
+*   **Réalisation** : Utilisation de Git, branches de travail, conteneurisation et automatisation locale.
+*   **Livrables** : Scripts de démarrage (`start.sh`) automatisant migrations et seeds.
+
+*   **Versioning** : Historique Git reflétant les itérations et les corrections de bugs.
+*   **Conteneurs** : Dockerfiles multi-étapes pour des images optimisées.
+*   **Preuves** : Historique Git, `Dockerfile`, scripts d'automatisation dans `/api`.
 
 <!--
 Notes orateur :
-- Ma démonstration va suivre ce scénario pour illustrer concrètement les compétences listées précédemment.
+- Git a permis de gérer les différentes étapes du développement et les arbitrages techniques.
+- Docker et Git facilitent la cohérence entre les environnements et le suivi des corrections.
 -->
 
 ---
 
-# 18. Conclusion
+# 13. Use Case Complet : De l'URL à l'historique
 
-### Ce que Nova V2 démontre
-*   Un parcours complet de développeur CDA : de l'analyse au déploiement.
-*   Une maîtrise des stacks modernes (Python/FastAPI, React/Vite).
-*   Une rigueur sur la qualité et la sécurité.
+### Démonstration du trajet de la donnée
 
-### Limites et Perspectives (V3)
-*   **Limites** : Pas de déploiement Cloud (AWS/Heroku) dans cette version.
-*   **V3** : Administration avancée, notifications in-app, multi-sites robuste.
+1.  **Frontend** : L'utilisateur colle une URL → React appelle l'API (`POST /watches`).
+2.  **API** : FastAPI valide la donnée, crée le `Watch` et déclenche une analyse.
+3.  **Moteur** : Le `CheckEngine` parse la page (Fixture HTML) et détermine l'état.
+4.  **DB** : Création d'un `WatchCheck` pour l'historique (ex: `IN_STOCK`, 49.99€).
+5.  **Notification** : Le Worker détecte le changement et envoie un mail (Mailhog).
+6.  **Interface** : L’interface affiche l’état courant et l’historique des vérifications.
 
 <!--
 Notes orateur :
-- Nova V2 n’est plus seulement une preuve de concept : c’est une version structurée, démontrable et techniquement cohérente.
-- Merci pour votre attention, je suis prêt pour vos questions.
+- Ce flux démontre ma maîtrise de l'ensemble du cycle de vie d'une donnée.
+- Chaque couche (UI, API, Service, DB, Worker) joue son rôle de manière sécurisée et coordonnée.
+-->
+
+---
+
+# 14. Conclusion
+
+*   **Résultat** : Nova V2 est une application **cohérente, sécurisée et démontrable**.
+*   **Compétences** : Les principales compétences du titre CDA sont démontrées par des preuves concrètes.
+*   **Limites** : Pas de déploiement Cloud AWS ni de scheduler configurable en V2.
+*   **Perspectives V3** : Multi-sites robuste, notifications in-app ou email production, Dashboard admin complet.
+
+**Merci pour votre attention !**
+
+<!--
+Notes orateur :
+- Nova V2 n'est plus seulement un prototype : c'est une version structurée et techniquement cohérente.
+- J'ai appris à concilier les exigences du référentiel avec les réalités du développement.
+- Je suis maintenant prêt pour vos questions.
 -->
